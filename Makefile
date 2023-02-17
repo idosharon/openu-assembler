@@ -18,6 +18,7 @@ SRC_FOLDER = src
 OBJ_FOLDER = obj
 BIN_FOLDER = bin
 
+
 FILES = main
 OBJECTS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(FILES)))
 
