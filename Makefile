@@ -18,14 +18,15 @@ SRC_FOLDER = src
 OBJ_FOLDER = obj
 BIN_FOLDER = bin
 
-
+# source files
 FILES = main
 OBJECTS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(FILES)))
 
+# the executable file
 EXECUTABLE = $(BIN_FOLDER)/$(PROJECT_NAME)
 
 # check if the obj file of each source file exists
-main: $(OBJECTS)
+main: clean $(OBJ_FOLDER)/main.o
 	# link all .o files into the executable
 	$(CC) $(C_FLAGS) $^ -o $(EXECUTABLE)
 	./$(EXECUTABLE)
