@@ -18,23 +18,29 @@ SRC_FOLDER = src
 OBJ_FOLDER = obj
 BIN_FOLDER = bin
 
-# source files
-FILES = main
-OBJECTS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(FILES)))
+# object files
+SOURCE_FILES = $(wildcard $(SRC_FOLDER)/*.c)
 
 # the executable file
 EXECUTABLE = $(BIN_FOLDER)/$(PROJECT_NAME)
 
-# check if the obj file of each source file exists
-main: clean $(OBJ_FOLDER)/main.o
-	# link all .o files into the executable
-	$(CC) $(C_FLAGS) $^ -o $(EXECUTABLE)
+# run the project
+run: $(EXECUTABLE)
 	./$(EXECUTABLE)
 
-# for each file in FILES create a rule to compile it
-$(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(FILES))):
-	# compile each .c file into .o file
-	$(CC) $(C_FLAGS) -c $(SRC_FOLDER)/$(basename $(notdir $@)).c -o $@
+# compile and run
+compile: clean $(EXECUTABLE)
+	./$(EXECUTABLE)
 
+# create the executable file, all object files must be created first
+$(EXECUTABLE): $(SOURCE_FILES:$(SRC_FOLDER)/%.c=$(OBJ_FOLDER)/%.o)
+	$(CC) $(C_FLAGS) $(OBJECTS) -o $@
+
+# for each source file, create an object file
+$(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.c
+	$(CC) $(C_FLAGS) -c $< -o $@
+
+# clean the project
 clean:
-	rm -f $(OBJ_FOLDER)/*.o $(EXECUTABLE)
+	rm -f $(OBJ_FOLDER)/*.o
+	rm -f $(BIN_FOLDER)/$(PROJECT_NAME)
