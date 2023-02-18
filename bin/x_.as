@@ -1,5 +1,3 @@
-; test file 1
-
 MAIN:   mov r3 ,LENGTH
 LOOP:   jmp L1(#-1,r6)
         mcr m1
