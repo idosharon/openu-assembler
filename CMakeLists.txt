@@ -27,4 +27,4 @@ file(GLOB_RECURSE SOURCE_FILES ${SOURCE_DIR}/*.c)
 file(GLOB_RECURSE HEADER_FILES ${SOURCE_DIR}/*.h)
 
 # compile the source files
-add_executable(assembler ${SOURCE_FILES} ${HEADER_FILES} src/PreAssembler.h src/Utils.h src/Types.h)
+add_executable(assembler ${SOURCE_FILES} ${HEADER_FILES} src/PreAssembler.h src/Utils.h src/Types.h src/Utils.c)
