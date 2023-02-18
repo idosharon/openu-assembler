@@ -3,6 +3,6 @@
 
 #include "Consts.h"
 
-#define PRE_ASSEMBLER_FILE_TYPE ".as"
+#define PRE_ASSEMBLER_FILE_TYPE ASM_FILE_TYPE
 
 #endif

@@ -16,18 +16,17 @@ typedef struct {
 
 typedef struct {
     char name[REGISTER_NAME_SIZE];
-    word value;
 } register_t;
 
 const register_t REGISTERS[REGISTER_COUNT] = {
-        { "r0", {0} },
-        { "r1", {0} },
-        { "r2", {0} },
-        { "r3", {0} },
-        { "r4", {0} },
-        { "r5", {0} },
-        { "r6", {0} },
-        { "r7", {0} }
+        { "r0"},
+        { "r1"},
+        { "r2"},
+        { "r3"},
+        { "r4"},
+        { "r5"},
+        { "r6"},
+        { "r7"}
 };
 
 /* addressing types */
