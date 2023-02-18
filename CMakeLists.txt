@@ -24,6 +24,7 @@ set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # get all the source files
 file(GLOB_RECURSE SOURCE_FILES ${SOURCE_DIR}/*.c)
+file(GLOB_RECURSE HEADER_FILES ${SOURCE_DIR}/*.h)
 
 # compile the source files
-add_executable(assembler ${SOURCE_FILES})
+add_executable(assembler ${SOURCE_FILES} ${HEADER_FILES} src/PreAssembler.h src/Utils.h src/Types.h)
