@@ -15,6 +15,4 @@
 #define REGISTER_COUNT 8
 #define REGISTER_NAME_SIZE 2
 
-
-
 #endif

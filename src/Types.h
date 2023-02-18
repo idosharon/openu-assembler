@@ -29,10 +29,7 @@ const register_t REGISTERS[REGISTER_COUNT] = {
         { "r7"}
 };
 
-/* addressing types */
-typedef struct {
 
-} addressing_t;
 
 
 #endif
