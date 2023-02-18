@@ -4,11 +4,11 @@ int main(int argc, char* argv[]) {
     int file_index = 1;
     FILE* file;
 
-    if(argc <= 1) {
+    if (argc <= 1) {
         warn(FILE_NOT_SPECIFIED);
         return 1;
     } else {
-        for(; file_index < argc; file_index++) {
+        for (; file_index < argc; file_index++) {
             /* get file name from argv */
             char* file_name = strdup(argv[file_index]);
 
@@ -27,6 +27,5 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-
     return 0;
 }
