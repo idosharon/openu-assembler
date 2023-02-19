@@ -1,18 +1,22 @@
 #include "PreAssembler.h"
 
 void pre_assemble(FILE* file, char* input_file_name) {
+    /* open pre assembler file */
     FILE* pre_assembled_file;
+    char* output_file_name = strdup(input_file_name);
+    /* line buffer & line number */
     char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
     size_t line_number = 0;
+    /* token pointer */
     char* token;
-    char* output_file_name = strdup(input_file_name);
 
+    /* macro list & macro flag */
     macro_node_t* macro_list = NULL;
     macro_t* current_macro = NULL;
     macro_node_t* current_macro_node = NULL;
     bool macro_flag = false;
 
-    /* add pre assembler file extension */
+    /* add pre assembler file extension & start writing to file */
     strcat(output_file_name, PRE_ASSEMBLER_FILE_EXTENSION);
     pre_assembled_file = fopen(output_file_name, "w");
 
