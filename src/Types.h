@@ -14,6 +14,7 @@ typedef struct {
     unsigned bits: WORD_SIZE;
 } word;
 
+/*
 typedef struct {
     char name[REGISTER_NAME_SIZE];
 } register_t;
@@ -28,11 +29,8 @@ const register_t REGISTERS[REGISTER_COUNT] = {
         { "r6"},
         { "r7"}
 };
+*/
 
-/* addressing types */
-typedef struct {
-
-} addressing_t;
 
 
 #endif
