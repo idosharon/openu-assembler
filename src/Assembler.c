@@ -1,5 +1,4 @@
-#include "PreAssembler.h"
-#include "Errors.h"
+#include "Assembler.h"
 
 int main(int argc, char* argv[]) {
     int file_index = 1;

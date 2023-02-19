@@ -3,7 +3,6 @@
 
 #include "Types.h"
 #include "Includes.h"
-//#include "Errors.h"
 
 #define PRE_ASSEMBLER_FILE_EXTENSION "_"ASM_FILE_EXTENSION
 
@@ -24,7 +23,7 @@ typedef struct {
 void pre_assemble(FILE*, char*);
 macro_t* find_macro(char*, macro_node_t*);
 
-
+bool is_valid_macro_name(char*);
 
 
 #endif

@@ -16,7 +16,7 @@
 #define REGISTER_NAME_SIZE 2
 
 #define COMMENT_CHAR ';'
-#define SPACE_STR " \t"
 #define LINE_BREAK "\n"
+#define SPACE_SEP LINE_BREAK" \t\r"
 
 #endif
