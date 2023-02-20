@@ -20,6 +20,6 @@ label_node_t* addLabelNode(label_node_t*, char*, int);
 
 void first_run(FILE*, char*);
 
-int add_label(char**, label_node_t*);
+int add_label(char*, label_node_t*);
 
 #endif

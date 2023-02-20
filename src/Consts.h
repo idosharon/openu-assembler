@@ -4,6 +4,7 @@
 /* File types */
 #define ASM_FILE_EXTENSION ".as"
 #define PRE_ASSEMBLER_FILE_EXTENSION ".am"
+#define OBJ_FILE_EXTENSION ".o"
 
 /* File reading consts */
 #define MAX_LINE_SIZE 80

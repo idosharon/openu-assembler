@@ -20,5 +20,12 @@ typedef enum {
     Relocatable
 } memory_t;
 
+typedef struct {
+    char* base_file_name;
+    char* asm_file;
+    char* pre_asm_file;
+
+} Files;
+
 
 #endif

@@ -1,9 +1,9 @@
 #include "PreAssembler.h"
 
-char* preAssemble(FILE* file, char* input_file_name) {
+char* preAssemble(FILE* file, char* base_file_name) {
     /* open pre assembler file */
     FILE* pre_assembled_file;
-    char* output_file_name = strdup(input_file_name);
+    char* output_file_name = strdup(base_file_name);
     /* line buffer & line number */
     char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
     size_t line_number = 0;
@@ -21,7 +21,7 @@ char* preAssemble(FILE* file, char* input_file_name) {
     pre_assembled_file = fopen(output_file_name, "w");
     if(pre_assembled_file == NULL) {
         file_error(FILE_OPEN_ERROR, output_file_name);
-        exit(1);
+        return NULL;
     }
 
     /* read new line from file */
@@ -41,7 +41,7 @@ char* preAssemble(FILE* file, char* input_file_name) {
             if(strcmp(token, END_MACRO_SYMBOL) == 0) {
                 /* check for extra tokens */
                 if(strtok(NULL, SPACE_SEP)) {
-                    line_error(MACRO_SYNTAX_ERROR, input_file_name, line_number);
+                    line_error(MACRO_SYNTAX_ERROR, base_file_name, line_number);
                 }
                 macro_flag = false;
             } else {
@@ -61,7 +61,7 @@ char* preAssemble(FILE* file, char* input_file_name) {
                     if(!isValidMacroName(token) ||
                             findMacro(token, macro_list) ||
                        strtok(NULL, SPACE_SEP)) {
-                        line_error(MACRO_SYNTAX_ERROR, input_file_name, line_number);
+                        line_error(MACRO_SYNTAX_ERROR, base_file_name, line_number);
                     } else {
                         /* create new macro */
                         macro_flag = true;
@@ -89,11 +89,11 @@ char* preAssemble(FILE* file, char* input_file_name) {
     free(line);
 
     if(macro_flag) {
-        file_error(MACRO_SYNTAX_ERROR, input_file_name);
+        file_error(MACRO_SYNTAX_ERROR, base_file_name);
     }
 
     fclose(pre_assembled_file);
-    printf("[status]: Created Pre Assembled file: %s\n", output_file_name);
+    printf("[info]: Created Pre Assembled file: %s\n", output_file_name);
 
     return output_file_name;
 }
