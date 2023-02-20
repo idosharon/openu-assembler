@@ -1,7 +1,7 @@
 #include "Errors.h"
 
 const char* ERRORS[] = {
-        "File was not found",
+        "Failed to open file",
         "Macro syntax error",
         "Unknown command",
 };

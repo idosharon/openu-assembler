@@ -3,7 +3,7 @@
 
 /* error messages */
 enum {
-    FILE_NOT_FOUND,
+    FILE_OPEN_ERROR,
     MACRO_SYNTAX_ERROR,
     UNKNOWN_COMMAND
 } ERRORS_INDEX;

@@ -2,6 +2,7 @@
 
 int main(int argc, char* argv[]) {
     int file_index = 1;
+    FILE* file;
 
     if(argc <= 1) {
         warn(FILE_NOT_SPECIFIED);
@@ -16,13 +17,13 @@ int main(int argc, char* argv[]) {
             strcat(file_name, ASM_FILE_EXTENSION);
 
             /* open file */
-            FILE* file = fopen(file_name, "r");
+            file = fopen(file_name, "r");
 
-            if(file == NULL) {
-                file_error(FILE_NOT_FOUND, file_name);
+            if (file == NULL) {
+                file_error(FILE_OPEN_ERROR, file_name);
             } else {
-                printf("Successfully Loaded: %s\n", file_name);
-                pre_assemble(file, strdup(argv[file_index]));
+                printf("[status]: Successfully Loaded: %s\n", file_name);
+                preAssemble(file, strdup(argv[file_index]));
             }
         }
     }

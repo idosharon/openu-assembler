@@ -14,10 +14,11 @@ typedef struct {
     struct macro_node_t* next;
 } macro_node_t;
 
-char* pre_assemble(FILE*, char*);
-macro_t* find_macro(char*, macro_node_t*);
+char* preAssemble(FILE*, char*);
+macro_t* findMacro(char*, macro_node_t*);
 
-bool is_valid_macro_name(char*);
+bool isValidMacroName(char*);
+macro_node_t* addMacroNode(macro_node_t*, char*);
 
 
 #endif

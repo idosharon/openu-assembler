@@ -1,6 +1,6 @@
 #include "PreAssembler.h"
 
-char* pre_assemble(FILE* file, char* input_file_name) {
+char* preAssemble(FILE* file, char* input_file_name) {
     /* open pre assembler file */
     FILE* pre_assembled_file;
     char* output_file_name = strdup(input_file_name);
@@ -12,13 +12,17 @@ char* pre_assemble(FILE* file, char* input_file_name) {
 
     /* macro list & macro flag */
     macro_node_t* macro_list = NULL;
+    macro_node_t* next_node = macro_list;
     macro_t* current_macro = NULL;
-    macro_node_t* current_macro_node = NULL;
     bool macro_flag = false;
 
     /* add pre assembler file extension & start writing to file */
     strcat(output_file_name, PRE_ASSEMBLER_FILE_EXTENSION);
     pre_assembled_file = fopen(output_file_name, "w");
+    if(pre_assembled_file == NULL) {
+        file_error(FILE_OPEN_ERROR, output_file_name);
+        exit(1);
+    }
 
     /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
@@ -46,7 +50,7 @@ char* pre_assemble(FILE* file, char* input_file_name) {
             }
         } else {
             /* check if token is an existing macro */
-            if((current_macro = find_macro(token, macro_list)) != NULL) {
+            if((current_macro = findMacro(token, macro_list)) != NULL) {
                 fputs(current_macro->data, pre_assembled_file);
             } else {
                 /* check for start of new macro def */
@@ -54,26 +58,15 @@ char* pre_assemble(FILE* file, char* input_file_name) {
                     /* get macro name */
                     token = strtok(NULL, SPACE_SEP);
 
-                    if( !is_valid_macro_name(token) ||
-                            find_macro(token, macro_list) ||
-                            strtok(NULL, SPACE_SEP)) {
+                    if(!isValidMacroName(token) ||
+                            findMacro(token, macro_list) ||
+                       strtok(NULL, SPACE_SEP)) {
                         line_error(MACRO_SYNTAX_ERROR, input_file_name, line_number);
                     } else {
                         /* create new macro */
                         macro_flag = true;
-
-                        /* set current macro to the new macro */
-                        current_macro = (macro_t*) (malloc(sizeof (macro_t)));
-
-                        /* set macro name and allocate its data */
-                        current_macro->name = strdup(token);
-                        current_macro->data = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
-
-                        /* create new macro node and append it to the start of list */
-                        current_macro_node = (macro_node_t*) (malloc(sizeof (macro_node_t)));
-                        current_macro_node->macro = current_macro;
-                        current_macro_node->next = (struct macro_node_t *) macro_list;
-                        macro_list = current_macro_node;
+                        macro_list = addMacroNode(macro_list, token);
+                        current_macro = macro_list->macro;
                     }
 
                 } else {
@@ -86,12 +79,11 @@ char* pre_assemble(FILE* file, char* input_file_name) {
 
     /* free all variables */
     while(macro_list != NULL) {
-        current_macro_node = macro_list;
-        macro_list = (macro_node_t *) macro_list->next;
-        free(current_macro_node->macro->name);
-        free(current_macro_node->macro->data);
-        free(current_macro_node->macro);
-        free(current_macro_node);
+        next_node = (macro_node_t *) macro_list->next;
+        free(macro_list->macro->data);
+        free(macro_list->macro);
+        free(macro_list);
+        macro_list = next_node;
     }
 
     free(line);
@@ -101,12 +93,12 @@ char* pre_assemble(FILE* file, char* input_file_name) {
     }
 
     fclose(pre_assembled_file);
-    fprintf(stdout, "Created Pre Assembled file: %s\n", output_file_name);
+    printf("[status]: Created Pre Assembled file: %s\n", output_file_name);
 
     return output_file_name;
 }
 
-macro_t* find_macro(char* name, macro_node_t* head) {
+macro_t* findMacro(char* name, macro_node_t* head) {
     while(head != NULL) {
         if(strcmp(head->macro->name, name) == 0) {
             return head->macro;
@@ -116,11 +108,26 @@ macro_t* find_macro(char* name, macro_node_t* head) {
     return NULL;
 }
 
-bool is_valid_macro_name(char* macro_name) {
+bool isValidMacroName(char* macro_name) {
     /* check if macro name is valid - only contains alphabetic and numbers */
     for(; *macro_name != '\0'; macro_name++) {
         if( !isalpha(*macro_name) && !isdigit(*macro_name) )
             return false;
     }
     return true;
+}
+
+macro_node_t* addMacroNode(macro_node_t* head, char* name) {
+    /* set current macro to the new macro */
+    macro_t* new_macro = (macro_t*) (malloc(sizeof (macro_t)));
+    macro_node_t* new_macro_node = (macro_node_t*) (malloc(sizeof (macro_node_t)));
+
+    /* set macro name and allocate its data */
+    new_macro->name = name;
+    new_macro->data = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
+
+    /* create new macro node and append it to the start of list */
+    new_macro_node->macro = new_macro;
+    new_macro_node->next = (struct macro_node_t *) head;
+    return new_macro_node;
 }

@@ -3,7 +3,7 @@
 
 /* File types */
 #define ASM_FILE_EXTENSION ".as"
-#define PRE_ASSEMBLER_FILE_EXTENSION "_pre"ASM_FILE_EXTENSION
+#define PRE_ASSEMBLER_FILE_EXTENSION ".am"
 
 /* File reading consts */
 #define MAX_LINE_SIZE 80
