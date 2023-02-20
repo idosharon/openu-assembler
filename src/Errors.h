@@ -4,7 +4,8 @@
 /* error messages */
 enum {
     FILE_NOT_FOUND,
-    MACRO_SYNTAX_ERROR
+    MACRO_SYNTAX_ERROR,
+    UNKNOWN_COMMAND
 } ERRORS_INDEX;
 
 extern const char* ERRORS[];
@@ -12,7 +13,6 @@ extern const char* ERRORS[];
 #define error(error_index) (fprintf(stderr, "[error]: %s\n", ERRORS[error_index]))
 #define line_error(error_index, file_name, line) (fprintf(stderr, "[error]: %s (%s:%lu)\n", ERRORS[error_index], file_name, line))
 #define file_error(error_index, file_name) (fprintf(stderr, "[error]: %s (file: %s)\n", ERRORS[error_index], file_name))
-
 
 /* warning messages */
 enum {

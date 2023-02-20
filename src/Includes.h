@@ -7,6 +7,7 @@
 #include <ctype.h>
 
 #include "Errors.h"
+#include "Utils.h"
 
 
 #endif

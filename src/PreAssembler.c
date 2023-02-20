@@ -1,6 +1,6 @@
 #include "PreAssembler.h"
 
-void pre_assemble(FILE* file, char* input_file_name) {
+char* pre_assemble(FILE* file, char* input_file_name) {
     /* open pre assembler file */
     FILE* pre_assembled_file;
     char* output_file_name = strdup(input_file_name);
@@ -20,29 +20,27 @@ void pre_assemble(FILE* file, char* input_file_name) {
     strcat(output_file_name, PRE_ASSEMBLER_FILE_EXTENSION);
     pre_assembled_file = fopen(output_file_name, "w");
 
+    /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
         /* increase line counter */
         line_number++;
 
-        /* skip comments */
-        if(line[0] == COMMENT_CHAR) continue;
-
         /* split line into tokens */
         token = strtok(strdup(line), SPACE_SEP);
 
-        /* skip empty line */
-        if(token == NULL) continue;
+        /* skip comment & empty line */
+        if(token == NULL || token[0] == COMMENT_CHAR) continue;
 
+        /* check if in macro def */
         if(macro_flag) {
+            /* check for end of macro def */
             if(strcmp(token, END_MACRO_SYMBOL) == 0) {
+                /* check for extra tokens */
                 if(strtok(NULL, SPACE_SEP)) {
                     line_error(MACRO_SYNTAX_ERROR, input_file_name, line_number);
                 }
                 macro_flag = false;
             } else {
-                /* skip spaces in line TODO: OPTIONAL, choose if need to delete */
-                /* while(*line == ' ') line++; */
-
                 /* add line to macro */
                 strcat(current_macro->data, line);
             }
@@ -64,18 +62,22 @@ void pre_assemble(FILE* file, char* input_file_name) {
                         /* create new macro */
                         macro_flag = true;
 
+                        /* set current macro to the new macro */
                         current_macro = (macro_t*) (malloc(sizeof (macro_t)));
+
+                        /* set macro name and allocate its data */
                         current_macro->name = strdup(token);
                         current_macro->data = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
 
+                        /* create new macro node and append it to the start of list */
                         current_macro_node = (macro_node_t*) (malloc(sizeof (macro_node_t)));
-
                         current_macro_node->macro = current_macro;
                         current_macro_node->next = (struct macro_node_t *) macro_list;
                         macro_list = current_macro_node;
                     }
 
                 } else {
+                    /* write line to pre-assembled file */
                     fputs(line, pre_assembled_file);
                 }
             }
@@ -99,6 +101,9 @@ void pre_assemble(FILE* file, char* input_file_name) {
     }
 
     fclose(pre_assembled_file);
+    fprintf(stdout, "Created Pre Assembled file: %s\n", output_file_name);
+
+    return output_file_name;
 }
 
 macro_t* find_macro(char* name, macro_node_t* head) {

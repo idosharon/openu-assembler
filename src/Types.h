@@ -14,23 +14,11 @@ typedef struct {
     unsigned bits: WORD_SIZE;
 } word;
 
-/*
-typedef struct {
-    char name[REGISTER_NAME_SIZE];
-} register_t;
-
-const register_t REGISTERS[REGISTER_COUNT] = {
-        { "r0"},
-        { "r1"},
-        { "r2"},
-        { "r3"},
-        { "r4"},
-        { "r5"},
-        { "r6"},
-        { "r7"}
-};
-*/
-
+typedef enum {
+    Absolute,
+    External,
+    Relocatable
+} memory_t;
 
 
 #endif

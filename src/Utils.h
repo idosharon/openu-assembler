@@ -5,9 +5,8 @@
 #include "Consts.h"
 #include "Types.h"
 
-const register_t findRegister(char* name);
-
-char* next_token(char* str, const char* delim);
+int appendBinaryToFile(FILE*, word);
+word calculateOnsComplete(word*);
 
 
 #endif

@@ -2,7 +2,8 @@
 
 const char* ERRORS[] = {
         "File was not found",
-        "Macro syntax error"
+        "Macro syntax error",
+        "Unknown command",
 };
 
 const char* WARNINGS[] = {

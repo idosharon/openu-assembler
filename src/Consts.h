@@ -3,6 +3,9 @@
 
 /* File types */
 #define ASM_FILE_EXTENSION ".as"
+#define PRE_ASSEMBLER_FILE_EXTENSION "_pre"ASM_FILE_EXTENSION
+
+/* File reading consts */
 #define MAX_LINE_SIZE 80
 
 /* Memory units size */
@@ -15,8 +18,13 @@
 #define REGISTER_COUNT 8
 #define REGISTER_NAME_SIZE 2
 
+/* Symbols */
 #define COMMENT_CHAR ';'
 #define LINE_BREAK "\n"
-#define SPACE_SEP LINE_BREAK" \t\r"
+#define SPACE_SEP " \t\r"LINE_BREAK
+
+/* Macros */
+#define START_MACRO_SYMBOL "mcr"
+#define END_MACRO_SYMBOL "endmcr"
 
 #endif
