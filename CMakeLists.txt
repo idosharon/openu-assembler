@@ -6,7 +6,8 @@
 # Date: 2023-02-17
 
 cmake_minimum_required(VERSION 3.0)
-project(OpenU_Assembler C)
+set(PROJECT_NAME assembler)
+project(${PROJECT_NAME} C)
 # Set the C standard to C90
 set(CMAKE_C_STANDARD 90)
 
@@ -27,4 +28,4 @@ file(GLOB_RECURSE SOURCE_FILES ${SOURCE_DIR}/*.c)
 file(GLOB_RECURSE HEADER_FILES ${SOURCE_DIR}/*.h)
 
 # compile the source files
-add_executable(assembler ${SOURCE_FILES} ${HEADER_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
