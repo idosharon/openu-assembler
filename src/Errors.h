@@ -2,7 +2,7 @@
 #define ERRORS_HEADER
 
 /* error messages */
-enum {
+typedef enum {
     FILE_OPEN_ERROR,
     MACRO_SYNTAX_ERROR,
     UNKNOWN_COMMAND
@@ -15,7 +15,7 @@ extern const char* ERRORS[];
 #define file_error(error_index, file_name) (fprintf(stderr, "[error]: %s (file: %s)\n", ERRORS[error_index], file_name))
 
 /* warning messages */
-enum {
+typedef enum {
     FILE_NOT_SPECIFIED
 } WARNINGS_INDEX;
 
