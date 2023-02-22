@@ -51,7 +51,6 @@ label_node_t* addLabelNode( label_node_t* head, char* label, int place) {
     label_t* newLabel = (label_t *)malloc(sizeof(label_t));
     newLabel->name = label;
     newLabel->place = place;
-
     newLabelNode->label = newLabel;
     // Set the next pointer to the current head of the list
     newLabelNode->next = head;

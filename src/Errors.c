@@ -7,6 +7,7 @@ const char* ERRORS[] = {
 };
 
 const char* WARNINGS[] = {
-        "No file was specified"
+        "No file was specified",
+        "Macro syntax warning"
 };
 

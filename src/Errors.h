@@ -16,13 +16,15 @@ extern const char* ERRORS[];
 
 /* warning messages */
 typedef enum {
-    FILE_NOT_SPECIFIED
+    FILE_NOT_SPECIFIED,
+    MACRO_SYNTAX_WARNING
 } WARNINGS_INDEX;
 
 extern const char* WARNINGS[];
 
 #define warn(warning) (fprintf(stdout, "[warning]: %s\n", WARNINGS[warning]))
-#define line_warning(warning, line) (fprintf(stdout, "[warning]: %s (line: %lu)\n", WARNINGS[warning], line))
+#define line_warning(warning_index, file_name, line) (fprintf(stderr, "[warning]: %s (%s:%lu)\n", WARNINGS[warning_index], file_name, line))
+#define file_warning(warning_index, file_name) (fprintf(stderr, "[warning]: %s (file: %s)\n", WARNINGS[warning_index], file_name))
 
 
 #endif

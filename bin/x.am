@@ -1,9 +1,10 @@
 MAIN:   mov r3 ,LENGTH
 LOOP:   jmp L1(#-1,r6)
         prn #-5
+            hello world
         bne LOOP(r4, r3)
-            sub r1, r4
-            bne END
+        sub r1, r4
+        bne END
 L1:     inc K
         bne LOOP(K, STR)
 END:    stop

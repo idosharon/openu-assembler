@@ -46,11 +46,15 @@ char* preAssemble(FILE* file, char* base_file_name) {
                 macro_flag = false;
             } else {
                 /* add line to macro */
+                (current_macro->lines_count)++;
+                current_macro->data = (char*)realloc(current_macro->data,current_macro->lines_count*MAX_LINE_SIZE);
                 strcat(current_macro->data, line);
             }
         } else {
             /* check if token is an existing macro */
             if((current_macro = findMacro(token, macro_list)) != NULL) {
+                if (strtok(NULL,SPACE_SEP))
+                    line_warning(MACRO_SYNTAX_WARNING,base_file_name,line_number);
                 fputs(current_macro->data, pre_assembled_file);
             } else {
                 /* check for start of new macro def */
@@ -60,7 +64,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
 
                     if(!isValidMacroName(token) ||
                             findMacro(token, macro_list) ||
-                       strtok(NULL, SPACE_SEP)) {
+                                strtok(NULL, SPACE_SEP)) {
                         line_error(MACRO_SYNTAX_ERROR, base_file_name, line_number);
                     } else {
                         /* create new macro */
@@ -110,6 +114,8 @@ macro_t* findMacro(char* name, macro_node_t* head) {
 
 bool isValidMacroName(char* macro_name) {
     /* check if macro name is valid - only contains alphabetic and numbers */
+    if (!isalpha(*macro_name))
+        return false;
     for(; *macro_name != '\0'; macro_name++) {
         if( !isalpha(*macro_name) && !isdigit(*macro_name) )
             return false;
@@ -124,7 +130,8 @@ macro_node_t* addMacroNode(macro_node_t* head, char* name) {
 
     /* set macro name and allocate its data */
     new_macro->name = name;
-    new_macro->data = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
+    new_macro->data = (char*) calloc(1,sizeof (char));
+    new_macro->lines_count = 0;
 
     /* create new macro node and append it to the start of list */
     new_macro_node->macro = new_macro;

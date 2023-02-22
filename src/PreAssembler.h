@@ -7,6 +7,7 @@
 typedef struct {
     char* name;
     char* data;
+    size_t lines_count;
 } macro_t;
 
 typedef struct {
