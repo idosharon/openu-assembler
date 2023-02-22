@@ -28,4 +28,4 @@ file(GLOB_RECURSE SOURCE_FILES ${SOURCE_DIR}/*.c)
 file(GLOB_RECURSE HEADER_FILES ${SOURCE_DIR}/*.h)
 
 # compile the source files
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES} src/Consts.c)

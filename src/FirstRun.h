@@ -8,6 +8,7 @@
 typedef struct {
     char* name;
     int place;
+    label_type type;
 } label_t;
 
 typedef struct {
@@ -18,8 +19,8 @@ typedef struct {
 label_node_t* addLabelNode(label_node_t*, char*, int);
 
 
-void first_run(FILE*, char*);
+void firstRun(FILE*, char*);
 
-int add_label(char*, label_node_t*);
+int add_label(char*, label_node_t**);
 
 #endif

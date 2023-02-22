@@ -39,7 +39,7 @@ int runAssembler(char* base_file_name) {
                 return -1;
             }
 
-            first_run(file, base_file_name);
+            firstRun(file, base_file_name);
         }
     }
 

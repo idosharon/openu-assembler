@@ -24,8 +24,14 @@
 #define LINE_BREAK "\n"
 #define SPACE_SEP " \t\r"LINE_BREAK
 
+/* Labels */
+#define LABEL_SEP ":"
+
 /* Macros */
 #define START_MACRO_SYMBOL "mcr"
 #define END_MACRO_SYMBOL "endmcr"
+
+/* All commands */
+extern const char* commands[];
 
 #endif

@@ -15,6 +15,13 @@ typedef struct {
 } word;
 
 typedef enum {
+    Code,
+    Data,
+    Entry,
+    Extern
+} label_type;
+
+typedef enum {
     Absolute,
     External,
     Relocatable
@@ -24,8 +31,9 @@ typedef struct {
     char* base_file_name;
     char* asm_file;
     char* pre_asm_file;
-
 } Files;
+
+
 
 
 #endif

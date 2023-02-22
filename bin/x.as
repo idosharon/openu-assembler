@@ -1,6 +1,6 @@
 ; test file 1
 
-MAIN:   mov r3 ,LENGTH
+MAIN: mov r3 ,LENGTH
 LOOP:   jmp L1(#-1,r6)
         mcr m1
         sub r1, r4
