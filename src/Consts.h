@@ -23,6 +23,7 @@
 #define COMMENT_CHAR ';'
 #define LINE_BREAK "\n"
 #define SPACE_SEP " \t\r"LINE_BREAK
+#define COMMA_SEP ","
 
 /* Labels */
 #define LABEL_SEP ':'
@@ -30,6 +31,12 @@
 /* Macros */
 #define START_MACRO_SYMBOL "mcr"
 #define END_MACRO_SYMBOL "endmcr"
+
+/* Keywords */
+#define DATA_SYMBOL     ".data"
+#define STRING_SYMBOL   ".string"
+#define ENTRY_SYMBOL    ".entry"
+#define EXTERN_SYMBOL   ".extern"
 
 /* All commands */
 extern const char* commands[];

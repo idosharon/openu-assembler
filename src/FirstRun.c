@@ -33,22 +33,35 @@ void firstRun(FILE* file, char* base_file_name) {
                 continue;
             }
         }
-        if (strcmp(token,".data") == 0 ||
-                strcmp(token,".string") == 0) {
+
+        if (IS_DATA_SYMBOL(token)) {
             if (label_flag) {
                 if (findLabel(current_label,label_list))
-                    line_error(MULTIPLE_LABEL_DEFINITIONS,base_file_name,line_number);
+                    line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name,line_number);
                 else {
-                    if (strcmp(token,".data") == 0) {
-                        label_list = addLabelNode(label_list, current_label, DC,Data);
+                    label_list = addLabelNode(label_list, current_label, DC, Data);
+                    if (is_equal(token, DATA_SYMBOL)) {
+                        /* calculate data length */
+                        while((token = strtok(NULL,COMMA_SEP)) != NULL) {
+                            if (is_number(token)) {
+                                DC++;
+                            } else {
+                                line_error(DATA_SYNTAX_ERROR, base_file_name,line_number);
+                                break;
+                            }
+                        }
                     }
-                    else {
-                        label_list = addLabelNode(label_list,current_label,DC,Data);
+                    else if (is_equal(token, STRING_SYMBOL)) {
                         token = strtok(NULL,SPACE_SEP);
                         DC += strlen(token)-1;
                     }
                 }
             }
+        } else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
+            if(IS_EXTERN_SYMBOL(token)) {
+
+            }
+
         }
     }
     info_file("Finished first run", base_file_name);
@@ -70,9 +83,8 @@ bool isValidLabelName(char* label_name) {
     if (!isalpha(*label_name))
         return false;
     for(; *label_name != '\0'; label_name++) {
-        if (endLabel)
-            return false;
-        if (*label_name == ':') {
+        if (endLabel) return false;
+        if (*label_name == LABEL_SEP) {
             endLabel = true;
         }
         else if(!isalpha(*label_name) && !isdigit(*label_name))

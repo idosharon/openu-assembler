@@ -20,3 +20,12 @@ word calculateOnsComplete(word* binary) {
 
     return neg_word;
 }
+
+bool is_number(char* str) {
+    int i = 0;
+    if(!str) return false;
+    for(; i < strlen(str); i++) {
+        if(!isdigit(str[i])) return false;
+    }
+    return true;
+}

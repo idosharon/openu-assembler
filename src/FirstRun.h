@@ -5,6 +5,9 @@
 #include "Types.h"
 #include <ctype.h>
 
+#define IS_DATA_SYMBOL(token) (is_equal(token, DATA_SYMBOL) || is_equal(token, STRING_SYMBOL))
+#define IS_EXTERN_SYMBOL(token) (is_equal(token, EXTERN_SYMBOL))
+#define IS_ENTRY_SYMBOL(token) (is_equal(token, ENTRY_SYMBOL))
 
 typedef struct {
     char* name;

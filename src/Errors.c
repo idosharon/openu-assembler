@@ -5,7 +5,8 @@ const char* ERRORS[] = {
         "Macro syntax error",
         "Unknown command",
         "Label syntax error",
-        "Multiple label definitions"
+        "Multiple label definitions",
+        "Data syntax error"
 };
 
 const char* WARNINGS[] = {
