@@ -14,6 +14,7 @@ int appendBinaryToFile(FILE*, word);
 word calculateOnsComplete(word*);
 
 bool is_number(char*);
-
+int find_command(char*);
+int get_command_length(int);
 
 #endif

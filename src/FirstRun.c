@@ -6,12 +6,16 @@ void firstRun(FILE* file, char* base_file_name) {
     char* token;
 
     label_node_t * label_list = NULL;
-    label_node_t * next_node = label_list;
     char* current_label = NULL;
     bool label_flag = false;
 
-    size_t IC = 0;
-    size_t DC = 0;
+    label_node_t * extern_list = NULL;
+    char* current_extern = NULL;
+    label_node_t * entry_list = NULL;
+    char* current_entry = NULL;
+
+    size_t IC = START_ADD;
+    size_t DC = START_ADD;
 
     /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
@@ -36,32 +40,70 @@ void firstRun(FILE* file, char* base_file_name) {
 
         if (IS_DATA_SYMBOL(token)) {
             if (label_flag) {
-                if (findLabel(current_label,label_list))
-                    line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name,line_number);
-                else {
+                if (findLabel(current_label,label_list)) {
+                    line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number);
+                    continue;
+                }
+                else
                     label_list = addLabelNode(label_list, current_label, DC, Data);
-                    if (is_equal(token, DATA_SYMBOL)) {
-                        /* calculate data length */
-                        while((token = strtok(NULL,COMMA_SEP)) != NULL) {
-                            if (is_number(token)) {
-                                DC++;
-                            } else {
-                                line_error(DATA_SYNTAX_ERROR, base_file_name,line_number);
-                                break;
-                            }
-                        }
-                    }
-                    else if (is_equal(token, STRING_SYMBOL)) {
-                        token = strtok(NULL,SPACE_SEP);
-                        DC += strlen(token)-1;
+            }
+            if (is_equal(token, DATA_SYMBOL)) {
+                /* calculate data length */
+                while((token = strtok(NULL,COMMA_SEP)) != NULL) {
+                    if (is_number(token)) {
+                        DC++;
+                    } else {
+                        line_error(DATA_SYNTAX_ERROR, base_file_name,line_number);
+                        continue;
                     }
                 }
             }
-        } else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
-            if(IS_EXTERN_SYMBOL(token)) {
-
+            else if (is_equal(token, STRING_SYMBOL)) {
+                token = strtok(NULL,SPACE_SEP);
+                DC += strlen(token)-1;
             }
-
+        }
+        else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
+            if(IS_EXTERN_SYMBOL(token)) {
+                token = strtok(NULL,SPACE_SEP);
+                if (token == NULL) {
+                    line_error(EXTERN_MISSING_ARGUMENT,base_file_name,line_number);
+                    continue;
+                }
+                if (!isValidLabelName(token)) {
+                    line_error(LABEL_SYNTAX_ERROR,base_file_name,line_number);
+                    continue;
+                }
+                extern_list = addLabelNode(extern_list, token, 0, Extern);
+            }
+            else {
+                token = strtok(NULL,SPACE_SEP);
+                if (token == NULL) {
+                    line_error(ENTRY_MISSING_ARGUMENT,base_file_name,line_number);
+                    continue;
+                }
+                if (!isValidLabelName(token)) {
+                    line_error(LABEL_SYNTAX_ERROR,base_file_name,line_number);
+                    continue;
+                }
+                entry_list = addLabelNode(entry_list, token, 0, Entry);
+            }
+        }
+        else {
+            if (label_flag) {
+                if (findLabel(current_label, label_list)) {
+                    line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number);
+                    continue;
+                } else {
+                    label_list = addLabelNode(label_list, current_label, IC, Code);
+                }
+            }
+            if (find_command(token) != -1) {
+                IC += get_command_length(find_command(token));
+            } else {
+                line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
+                continue;
+            }
         }
     }
     info_file("Finished first run", base_file_name);

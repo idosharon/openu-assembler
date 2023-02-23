@@ -13,6 +13,7 @@
 #define BYTE_SIZE 7
 #define WORD_SIZE (2 * BYTE_SIZE)
 #define MEMORY_SIZE (256 * WORD_SIZE)
+#define START_ADD 100
 
 /* Registers consts */
 #define REGISTER_SIZE WORD_SIZE
@@ -39,6 +40,7 @@
 #define EXTERN_SYMBOL   ".extern"
 
 /* All commands */
-extern const char* commands[];
+#define NUM_OF_COMMANDS 16
+extern const char* commands[NUM_OF_COMMANDS];
 
 #endif

@@ -1,6 +1,6 @@
 #include "Consts.h"
 
-const char* commands[] = {
+const char* commands[NUM_OF_COMMANDS] = {
         "mov",
         "cmp",
         "add",

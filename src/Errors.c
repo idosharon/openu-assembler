@@ -6,7 +6,11 @@ const char* ERRORS[] = {
         "Unknown command",
         "Label syntax error",
         "Multiple label definitions",
-        "Data syntax error"
+        "Data syntax error",
+        "Extern missing argument",
+        "Entry missing argument",
+        "Command not found"
+
 };
 
 const char* WARNINGS[] = {
