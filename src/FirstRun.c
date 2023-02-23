@@ -4,7 +4,6 @@ void firstRun(FILE* file, char* base_file_name) {
     char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
     size_t line_number = 0;
     char* token;
-    char* temp_token;
 
     label_node_t * label_list = NULL;
     label_node_t * next_node = label_list;
@@ -42,6 +41,9 @@ void firstRun(FILE* file, char* base_file_name) {
                 else {
                     if (strcmp(token,".data") == 0) {
                         label_list = addLabelNode(label_list, current_label, DC,Data);
+                    }
+                    else {
+                        label_list
                     }
 
                 }
