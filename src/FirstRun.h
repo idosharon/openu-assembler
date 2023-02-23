@@ -2,6 +2,7 @@
 #define FIRSTRUN_HEADER
 
 #include "Includes.h"
+#include "Types.h"
 #include <ctype.h>
 
 
@@ -16,11 +17,14 @@ typedef struct {
     struct label_node_t* next;
 } label_node_t;
 
-label_node_t* addLabelNode(label_node_t*, char*, int);
-
 
 void firstRun(FILE*, char*);
+label_t* findLabel(char*, label_node_t*);
 
-int add_label(char*, label_node_t**);
+bool isValidLabelName(char*);
+label_node_t * addLabelNode(label_node_t *, char*, int , label_type);
 
 #endif
+
+
+

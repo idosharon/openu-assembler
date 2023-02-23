@@ -1,55 +1,92 @@
 #include "FirstRun.h"
 
-
-void firstRun(FILE* file, char* file_name) {
-    char line[MAX_LINE_SIZE];
+void firstRun(FILE* file, char* base_file_name) {
+    char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
+    size_t line_number = 0;
     char* token;
+    char* temp_token;
 
-    size_t DC = 0;
-    size_t IC = 0;
-
-    label_node_t* labels_list = NULL;
-    FILE* obj_file;
-
-    strcat(file_name, OBJ_FILE_EXTENSION);
-
-    obj_file = fopen(file_name, "w");
-    /* Check if the file was opened successfully */
-    if (obj_file == NULL) {
-        file_error(FILE_OPEN_ERROR, file_name);
-        return;
-    }
-
+    label_node_t * label_list = NULL;
+    label_node_t * next_node = label_list;
+    char* current_label = NULL;
     bool label_flag = false;
 
+    size_t IC = 0;
+    size_t DC = 0;
+
+    /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
-        /* add label */
-        char* label = strtok(line, LABEL_SEP);
-        label_flag = (label != NULL);
+        /* increase line counter */
+        line_number++;
 
+        /* split line into tokens */
+        token = strtok(strdup(line), SPACE_SEP);
+
+        /* skip comment & empty line */
+        if(token == NULL || token[0] == COMMENT_CHAR) continue;
+
+        /* check if there is a label */
+
+        temp_token = strtok(strdup(line),":");
+        if(temp_token != NULL) {
+            if (isValidLabelName(temp_token)) {
+                label_flag = true;
+                current_label = token;
+                token = strtok(NULL,SPACE_SEP);
+            } else {
+                line_error(LABEL_SYNTAX_ERROR, base_file_name, line_number);
+            }
+        }
+        if (strcmp(token,".data") == 0 ||
+                strcmp(token,".string") == 0) {
+            if (label_flag) {
+                if (findLabel(current_label,label_list))
+                    line_error(MULTIPLE_LABEL_DEFINITIONS,base_file_name,line_number);
+                else {
+                    if (strcmp(token,".data") == 0) {
+                        label_list = addLabelNode(label_list, current_label, DC,Data);
+                    }
+
+                }
+            }
+        }
     }
+    printf("[info]: Finished first run: %s\n", base_file_name);
 }
 
-/* checks if the first word is a label and if so,
- * adds it to the label table and returns 1
- * if first word is not a label, returns 0 */
-int add_label(char* line, label_node_t** labelList) {
-    char* label = strtok(line, LABEL_SEP);
-    if(label != NULL) {
-        /* found label */
-        *labelList = addLabelNode(*labelList, label, 0);
-
+label_t* findLabel(char* name, label_node_t * head) {
+    while(head != NULL) {
+        if(strcmp(head->label->name, name) == 0) {
+            return head->label;
+        }
+        head = (label_node_t *) head->next;
     }
-
+    return NULL;
 }
 
+bool isValidLabelName(char* label_name) {
+    /* check if label name is valid - only contains alphabetic and numbers */
+    if (!isalpha(*label_name))
+        return false;
+    for(; *label_name != '\0'; label_name++) {
+        if( !isalpha(*label_name) && !isdigit(*label_name) )
+            return false;
+    }
+    return true;
+}
 
-label_node_t* addLabelNode( label_node_t* head, char* label, int place) {
-    label_node_t* newLabelNode = (label_node_t*) malloc(sizeof(label_node_t));
-    label_t* newLabel = (label_t*) malloc(sizeof(label_t));
-    newLabel->name = label;
-    newLabel->place = place;
-    newLabelNode->label = newLabel;
-    newLabelNode->next = head;
-    return newLabelNode;
+label_node_t * addLabelNode(label_node_t * head, char* name, int place , label_type labelType) {
+    /* set current label to the new label */
+    label_t * new_label = (label_t*) (malloc(sizeof (label_t)));
+    label_node_t* new_label_node = (label_node_t*) (malloc(sizeof (label_node_t)));
+
+    /* set label name and allocate its data */
+    new_label->name = name;
+    new_label->place = place;
+    new_label->type = labelType;
+
+    /* create new label node and append it to the start of list */
+    new_label_node->label = new_label;
+    new_label_node->next = (struct label_node_t *) head;
+    return new_label_node;
 }
