@@ -48,7 +48,7 @@ void firstRun(FILE* file, char* base_file_name) {
             }
         }
     }
-    printf("[info]: Finished first run: %s\n", base_file_name);
+    info_file("Finished first run", base_file_name);
 }
 
 label_t* findLabel(char* name, label_node_t * head) {

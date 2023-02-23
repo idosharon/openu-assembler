@@ -97,7 +97,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
     }
 
     fclose(pre_assembled_file);
-    printf("[info]: Created Pre Assembled file: %s\n", output_file_name);
+    info_file("Created Pre Assembled file", output_file_name);
 
     return output_file_name;
 }

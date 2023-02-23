@@ -31,7 +31,7 @@ int runAssembler(char* base_file_name) {
     if (file == NULL) {
         file_error(FILE_OPEN_ERROR, current_file_name);
     } else {
-        printf("[info]: Successfully Loaded: %s\n", current_file_name);
+        info_file("Successfully Loaded", current_file_name);
         if((current_file_name = preAssemble(file, base_file_name))) {
             file = fopen(current_file_name, "r");
             if(file == NULL) {
