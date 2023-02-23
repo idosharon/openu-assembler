@@ -25,7 +25,7 @@
 #define SPACE_SEP " \t\r"LINE_BREAK
 
 /* Labels */
-#define LABEL_SEP ":"
+#define LABEL_SEP ':'
 
 /* Macros */
 #define START_MACRO_SYMBOL "mcr"

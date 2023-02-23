@@ -22,11 +22,11 @@ void firstRun(FILE* file, char* base_file_name) {
         token = strtok(strdup(line), SPACE_SEP);
 
         /* check if there is a label */
-
-        if(strchr(line,':')) {
+        if(strchr(line,LABEL_SEP)) {
             if (isValidLabelName(token)) {
                 label_flag = true;
                 current_label = token;
+                current_label[strlen(current_label)-1] = '\0';
                 token = strtok(NULL,SPACE_SEP);
             } else {
                 line_error(LABEL_SYNTAX_ERROR, base_file_name, line_number);
@@ -43,9 +43,10 @@ void firstRun(FILE* file, char* base_file_name) {
                         label_list = addLabelNode(label_list, current_label, DC,Data);
                     }
                     else {
-                        label_list
+                        label_list = addLabelNode(label_list,current_label,DC,Data);
+                        token = strtok(NULL,SPACE_SEP);
+                        DC += strlen(token)-1;
                     }
-
                 }
             }
         }

@@ -38,7 +38,6 @@ int runAssembler(char* base_file_name) {
                 file_error(FILE_OPEN_ERROR, current_file_name);
                 return -1;
             }
-
             firstRun(file, base_file_name);
         }
     }
