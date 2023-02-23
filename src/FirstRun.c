@@ -22,19 +22,16 @@ void firstRun(FILE* file, char* base_file_name) {
         /* split line into tokens */
         token = strtok(strdup(line), SPACE_SEP);
 
-        /* skip comment & empty line */
-        if(token == NULL || token[0] == COMMENT_CHAR) continue;
-
         /* check if there is a label */
 
-        temp_token = strtok(strdup(line),":");
-        if(temp_token != NULL) {
-            if (isValidLabelName(temp_token)) {
+        if(strchr(line,':')) {
+            if (isValidLabelName(token)) {
                 label_flag = true;
                 current_label = token;
                 token = strtok(NULL,SPACE_SEP);
             } else {
                 line_error(LABEL_SYNTAX_ERROR, base_file_name, line_number);
+                continue;
             }
         }
         if (strcmp(token,".data") == 0 ||
@@ -66,10 +63,16 @@ label_t* findLabel(char* name, label_node_t * head) {
 
 bool isValidLabelName(char* label_name) {
     /* check if label name is valid - only contains alphabetic and numbers */
+    bool endLabel = false;
     if (!isalpha(*label_name))
         return false;
     for(; *label_name != '\0'; label_name++) {
-        if( !isalpha(*label_name) && !isdigit(*label_name) )
+        if (endLabel)
+            return false;
+        if (*label_name == ':') {
+            endLabel = true;
+        }
+        else if(!isalpha(*label_name) && !isdigit(*label_name))
             return false;
     }
     return true;
