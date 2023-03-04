@@ -21,6 +21,19 @@ word calculateOnsComplete(word* binary) {
     return neg_word;
 }
 
+char* reverse_string(char* str0) {
+    char* str;
+    int i;
+    str = strdup(str0);
+    int len = strlen(str);
+    for (i = 0; i < len / 2; i++) {
+        char temp = str[i];
+        str[i] = str[len - i - 1];
+        str[len - i - 1] = temp;
+    }
+    return str;
+}
+
 bool is_number(char* str) {
     int i = 0;
     if(!str) return false;
@@ -32,16 +45,9 @@ bool is_number(char* str) {
     return true;
 }
 
-int get_command_length(int index) {
-    switch (index) {
-        case 0: case 1: case 2: case 3:
-            return 3;
-        case 4: case 5: case 7: case 8: case 12:
-            return 2;
-        case 15:
-            return 1;
-        default: return 4;
-    }
+int get_command_length(char* binary_cmd) {
+    /* get the command length from the shitat miun in cells 3,4,5,6 in binary_cmd */
+    return 2;
 }
 
 int find_command(char* str) {
@@ -52,4 +58,51 @@ int find_command(char* str) {
         }
     }
     return -1;
+}
+
+int find_register(char* str) {
+    int i;
+    for(i = 0; i < NUM_OF_REGISTERS; i++) {
+        if(is_equal(str, registers[i])) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+char* getRegisterNumber(int index) {
+    switch (index) {
+        case 0: return "000";
+        case 1: return "001";
+        case 2: return "010";
+        case 3: return "011";
+        case 4: return "100";
+        case 5: return "101";
+        case 6: return "110";
+        case 7: return "111";
+        default: return NULL;
+    }
+}
+
+char* getOpcode(int index) {
+    switch (index) {
+        case 0: return "0000";
+        case 1: return "0001";
+        case 2: return "0010";
+        case 3: return "0011";
+        case 4: return "0100";
+        case 5: return "0101";
+        case 6: return "0110";
+        case 7: return "0111";
+        case 8: return "1000";
+        case 9: return "1001";
+        case 10: return "1010";
+        case 11: return "1011";
+        case 12: return "1100";
+        case 13: return "1101";
+        case 14: return "1110";
+        case 15: return "1111";
+
+        default: return NULL;
+    }
 }

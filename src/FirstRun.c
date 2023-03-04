@@ -17,6 +17,8 @@ void firstRun(FILE* file, char* base_file_name) {
     size_t IC = START_ADD;
     size_t DC = START_ADD;
 
+    char* binary_str;
+
     /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
         /* increase line counter */
@@ -99,7 +101,13 @@ void firstRun(FILE* file, char* base_file_name) {
                 }
             }
             if (find_command(token) != -1) {
-                IC += get_command_length(find_command(token));
+                binary_str = getBinaryCommand(token, base_file_name, line_number);
+                if (binary_str == NULL) {
+                    continue;
+                }
+                else {
+                    IC += get_command_length(binary_str);
+                }
             } else {
                 line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
                 continue;
@@ -107,6 +115,48 @@ void firstRun(FILE* file, char* base_file_name) {
         }
     }
     info_file("Finished first run", base_file_name);
+}
+
+
+char* getBinaryCommand(char* token, char* base_file_name, int line_number) {
+
+    switch (find_command(token)) {
+        case MOV:
+            return getBinaryMov(token, base_file_name, line_number);
+        case CMP:
+            return getBinaryCmp(token, base_file_name, line_number);
+        case ADD:
+            return getBinaryAdd(token, base_file_name, line_number);
+        case SUB:
+            return getBinarySub(token, base_file_name, line_number);
+        case NOT:
+            return getBinaryNot(token, base_file_name, line_number);
+        case CLR:
+            return getBinaryClr(token, base_file_name, line_number);
+        case LEA:
+            return getBinaryLea(token, base_file_name, line_number);
+        case INC:
+            return getBinaryInc(token, base_file_name, line_number);
+        case DEC:
+            return getBinaryDec(token, base_file_name, line_number);
+        case JMP:
+            return getBinaryJmp(token, base_file_name, line_number);
+        case BNE:
+            return getBinaryBne(token, base_file_name, line_number);
+        case RED:
+            return getBinaryRed(token, base_file_name, line_number);
+        case PRN:
+            return getBinaryPrn(token, base_file_name, line_number);
+        case JSR:
+            return getBinaryJsr(token, base_file_name, line_number);
+        case RTS:
+            return getBinaryRts(token, base_file_name, line_number);
+        case STOP:
+            return getBinaryStop(token, base_file_name, line_number);
+        default:
+            return NULL;
+    }
+
 }
 
 label_t* findLabel(char* name, label_node_t * head) {
@@ -132,6 +182,9 @@ bool isValidLabelName(char* label_name) {
         else if(!isalpha(*label_name) && !isdigit(*label_name))
             return false;
     }
+    if (find_register(label_name) != -1 || find_command(label_name) != -1) {
+        return false;
+    }
     return true;
 }
 
@@ -149,4 +202,288 @@ label_node_t * addLabelNode(label_node_t * head, char* name, int place , label_t
     new_label_node->label = new_label;
     new_label_node->next = (struct label_node_t *) head;
     return new_label_node;
+}
+
+
+
+/* commands binary strings */
+
+char* getBinaryMov(char* token, char* base_file_name, int line_number) {
+
+    /* build the binary string code from left to right and then reverse it */
+
+    char *binary_str = (char *) (malloc(sizeof(char) * WORD_SIZE));
+    char *operand1 = token;
+    char *operand2;
+    char *opcode = (char*) (malloc(sizeof(char) * OPCODE_SIZE));
+
+    binary_str[0] = '\0';
+    opcode[0] = '\0';
+    operand1 = strtok(NULL, COMMA_SEP SPACE_SEP);
+    operand2 = operand1;
+    operand2 = strtok(NULL, COMMA_SEP SPACE_SEP);
+
+
+    if (operand1 == NULL || operand2 == NULL) {
+        line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+        return NULL;
+    }
+    if (find_register(operand1) != -1) {
+        if (find_register(operand2) != -1) {
+            /* mov r1,r2 */
+            binary_str = strcat(binary_str, "001111");
+            opcode = getOpcode(MOV);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        } else if (isValidLabelName(operand2)) {
+            /* mov r1, LABEL */
+            binary_str = strcat(binary_str, "001011");
+            opcode = getOpcode(MOV);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        }
+    } else if (strchr(operand1, NUMBER_SYMBOL) != NULL) {
+        if (is_number(operand1 + 1)) {
+            if (find_register(operand2) != -1) {
+                /* mov #1,r1 */
+                binary_str = strcat(binary_str, "001100");
+                opcode = getOpcode(MOV);
+                opcode = reverse_string(opcode);
+                binary_str = strcat(binary_str, opcode);
+                binary_str = strcat(binary_str, "0000");
+                binary_str = reverse_string(binary_str);
+                operand2 = strtok(NULL, COMMA_SEP);
+                if (operand2 != NULL) {
+                    line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                    return NULL;
+                }
+                return binary_str;
+            } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
+                line_error(INVALID_DEST_ARG, base_file_name, line_number);
+                return NULL;
+            } else if (isValidLabelName(operand2)) {
+                /* mov #1, LABEL */
+                binary_str = strcat(binary_str, "001000");
+                opcode = getOpcode(MOV);
+                opcode = reverse_string(opcode);
+                binary_str = strcat(binary_str, opcode);
+                binary_str = strcat(binary_str, "0000");
+                binary_str = reverse_string(binary_str);
+                operand2 = strtok(NULL, COMMA_SEP);
+                if (operand2 != NULL) {
+                    line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                    return NULL;
+                }
+                return binary_str;
+
+            } else {
+                line_error(INVALID_DEST_ARG, base_file_name, line_number);
+                return NULL;
+            }
+        } else {
+            line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
+            return NULL;
+        }
+    } else if (isValidLabelName(operand1)) {
+        if (find_register(operand2) != -1) {
+            /* mov LABEL, r1 */
+            binary_str = strcat(binary_str, "001110");
+            opcode = getOpcode(MOV);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        } else if (isValidLabelName(operand2)) {
+            /* mov LABEL, LABEL */
+            binary_str = strcat(binary_str, "001010");
+            opcode = getOpcode(MOV);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        }
+    } else {
+        line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
+        return NULL;
+    }
+}
+
+char* getBinarySub(char* token, char* base_file_name, int line_number) {
+
+    /* build the binary string code from left to right and then reverse it */
+
+    char *binary_str = (char *) (malloc(sizeof(char) * WORD_SIZE));
+    char *operand1 = token;
+    char *operand2;
+    char *opcode = (char*) (malloc(sizeof(char) * OPCODE_SIZE));
+
+    binary_str[0] = '\0';
+    opcode[0] = '\0';
+    operand1 = strtok(NULL, COMMA_SEP SPACE_SEP);
+    operand2 = operand1;
+    operand2 = strtok(NULL, COMMA_SEP SPACE_SEP);
+
+
+    if (operand1 == NULL || operand2 == NULL) {
+        line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+        return NULL;
+    }
+    if (find_register(operand1) != -1) {
+        if (find_register(operand2) != -1) {
+            /* mov r1,r2 */
+            binary_str = strcat(binary_str, "001111");
+            opcode = getOpcode(SUB);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        } else if (isValidLabelName(operand2)) {
+            /* mov r1, LABEL */
+            binary_str = strcat(binary_str, "001011");
+            opcode = getOpcode(SUB);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        }
+    } else if (strchr(operand1, NUMBER_SYMBOL) != NULL) {
+        if (is_number(operand1 + 1)) {
+            if (find_register(operand2) != -1) {
+                /* mov #1,r1 */
+                binary_str = strcat(binary_str, "001100");
+                opcode = getOpcode(SUB);
+                opcode = reverse_string(opcode);
+                binary_str = strcat(binary_str, opcode);
+                binary_str = strcat(binary_str, "0000");
+                binary_str = reverse_string(binary_str);
+                operand2 = strtok(NULL, COMMA_SEP);
+                if (operand2 != NULL) {
+                    line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                    return NULL;
+                }
+                return binary_str;
+            } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
+                line_error(INVALID_DEST_ARG, base_file_name, line_number);
+                return NULL;
+            } else if (isValidLabelName(operand2)) {
+                /* mov #1, LABEL */
+                binary_str = strcat(binary_str, "001000");
+                opcode = getOpcode(SUB);
+                opcode = reverse_string(opcode);
+                binary_str = strcat(binary_str, opcode);
+                binary_str = strcat(binary_str, "0000");
+                binary_str = reverse_string(binary_str);
+                operand2 = strtok(NULL, COMMA_SEP);
+                if (operand2 != NULL) {
+                    line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                    return NULL;
+                }
+                return binary_str;
+
+            } else {
+                line_error(INVALID_DEST_ARG, base_file_name, line_number);
+                return NULL;
+            }
+        } else {
+            line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
+            return NULL;
+        }
+    } else if (isValidLabelName(operand1)) {
+        if (find_register(operand2) != -1) {
+            /* mov LABEL, r1 */
+            binary_str = strcat(binary_str, "001110");
+            opcode = getOpcode(SUB);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        } else if (isValidLabelName(operand2)) {
+            /* mov LABEL, LABEL */
+            binary_str = strcat(binary_str, "001010");
+            opcode = getOpcode(SUB);
+            opcode = reverse_string(opcode);
+            binary_str = strcat(binary_str, opcode);
+            binary_str = strcat(binary_str, "0000");
+            binary_str = reverse_string(binary_str);
+            operand2 = strtok(NULL, COMMA_SEP);
+            if (operand2 != NULL) {
+                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                return NULL;
+            }
+            return binary_str;
+        } else {
+            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+            return NULL;
+        }
+    } else {
+        line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
+        return NULL;
+    }
 }

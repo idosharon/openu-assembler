@@ -15,6 +15,10 @@ word calculateOnsComplete(word*);
 
 bool is_number(char*);
 int find_command(char*);
-int get_command_length(int);
+int get_command_length(char*);
+int find_register(char*);
+char* getRegisterNumber(int);
+char* getOpcode(int);
+char* reverse_string(char*);
 
 #endif

@@ -9,7 +9,10 @@ const char* ERRORS[] = {
         "Data syntax error",
         "Extern missing argument",
         "Entry missing argument",
-        "Command not found"
+        "Command not found",
+        "Command syntax error",
+        "Invalid destination argument",
+        "Invalid source argument"
 
 };
 

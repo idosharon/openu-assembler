@@ -14,6 +14,7 @@
 #define WORD_SIZE (2 * BYTE_SIZE)
 #define MEMORY_SIZE (256 * WORD_SIZE)
 #define START_ADD 100
+#define OPCODE_SIZE 4
 
 /* Registers consts */
 #define REGISTER_SIZE WORD_SIZE
@@ -25,6 +26,7 @@
 #define LINE_BREAK "\n"
 #define SPACE_SEP " \t\r"LINE_BREAK
 #define COMMA_SEP ","
+#define NUMBER_SYMBOL '#'
 
 /* Labels */
 #define LABEL_SEP ':'
@@ -39,8 +41,42 @@
 #define ENTRY_SYMBOL    ".entry"
 #define EXTERN_SYMBOL   ".extern"
 
+
 /* All commands */
 #define NUM_OF_COMMANDS 16
 extern const char* commands[NUM_OF_COMMANDS];
 
+/* command types */
+typedef enum {
+    MOV,
+    CMP,
+    ADD,
+    SUB,
+    NOT,
+    CLR,
+    LEA,
+    INC,
+    DEC,
+    JMP,
+    BNE,
+    RED,
+    PRN,
+    JSR,
+    RTS,
+    STOP
+} COMMANDS_INDEX;
+
+#define NUM_OF_REGISTERS 8
+extern const char* registers[NUM_OF_REGISTERS];
+/* register types */
+typedef enum {
+    r0,
+    r1,
+    r2,
+    r3,
+    r4,
+    r5,
+    r6,
+    r7
+} REGISTERS_INDEX;
 #endif

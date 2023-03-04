@@ -18,3 +18,14 @@ const char* commands[NUM_OF_COMMANDS] = {
         "rts",
         "stop"
 };
+
+const char* registers[NUM_OF_REGISTERS] = {
+        "r0",
+        "r1",
+        "r2",
+        "r3",
+        "r4",
+        "r5",
+        "r6",
+        "r7"
+};
