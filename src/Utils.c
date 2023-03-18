@@ -35,6 +35,7 @@ char* reverse_string(char* str0) {
 }
 
 bool is_number(char* str) {
+    /* TODO: check if number is in range */
     int i = 0;
     if(!str) return false;
     if (*str == '-' || *str == '+')
@@ -45,9 +46,21 @@ bool is_number(char* str) {
     return true;
 }
 
-int get_command_length(char* binary_cmd) {
-    /* get the command length from the shitat miun in cells 3,4,5,6 in binary_cmd */
-    return 2;
+int get_command_length(char* token) {
+    /* check command type (group) */
+    if(isStrEqual(token, "mov") || isStrEqual(token, "cmp") || isStrEqual(token, "add") ||
+            isStrEqual(token, "sub") || isStrEqual(token, "lea")) {
+        return 2;
+    } else if(isStrEqual(token, "clr") || isStrEqual(token, "not") || isStrEqual(token, "inc") ||
+            isStrEqual(token, "dec") || isStrEqual(token, "jmp") || isStrEqual(token, "bne") ||
+            isStrEqual(token, "red") || isStrEqual(token, "prn") || isStrEqual(token, "jsr")) {
+        return 1;
+    } else if(isStrEqual(token, "rts") || isStrEqual(token, "stop")) {
+        return 0;
+    }
+    token = strtok(NULL, SPACE_SEP);
+
+    return 0;
 }
 
 int find_command(char* str) {
@@ -124,11 +137,10 @@ char *getFileName(char* base, char* ext) {
     char* file_name;
     if(!base || !ext) return NULL;
 
-    file_name = (char*) malloc(strlen(base) + strlen(ext) + 2);
+    file_name = (char*) malloc(strlen(base) + strlen(ext) + 1);
 
     if(file_name) {
         strcpy(file_name, base);
-        strcat(file_name, ".");
         strcat(file_name, ext);
         return file_name;
     }

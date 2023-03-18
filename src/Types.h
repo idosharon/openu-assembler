@@ -14,6 +14,7 @@ typedef struct {
     unsigned bits: WORD_SIZE;
 } word;
 
+/* label type */
 typedef enum {
     Code,
     Data,
@@ -21,22 +22,41 @@ typedef enum {
     Extern
 } label_type;
 
+/* memory type */
 typedef enum {
     Absolute,
     External,
     Relocatable
-} memory_t;
+} memory_type;
 
-typedef struct {
-    char* base_file_name;
-    char* asm_file;
-    char* pre_asm_file;
-} Files;
+/* argument type */
+typedef enum {
+    Immediate,
+    Direct,
+    Jump,
+    Register
+} arg_type;
 
+/* node type */
 typedef struct {
     void* data;
     struct node_t* next;
 } node_t;
+
+/* command */
+typedef struct {
+    char* name;
+    int args;
+} command;
+
+/* command type */
+typedef struct {
+    int type;
+    int args : 3;
+
+} command_type;
+};
+
 
 
 

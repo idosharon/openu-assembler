@@ -66,7 +66,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
                         /* create new macro */
                         macro_flag = true;
                         macro_list = addMacroNode(macro_list, token);
-                        current_macro = (macro_t *) macro_list->next;
+                        current_macro = (macro_t *) macro_list->data;
                     }
 
                 } else {

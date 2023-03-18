@@ -6,6 +6,7 @@ void firstRun(FILE* file, char* base_file_name) {
     char* token;
 
     node_t* label_list = NULL;
+    node_t* future_label_list = NULL;
 
     char* current_label = NULL;
     bool label_flag = false;
@@ -101,6 +102,7 @@ void firstRun(FILE* file, char* base_file_name) {
                 }
             }
             if (find_command(token) != -1) {
+                IC += get_command_length(token);
                 /*binary_str = getBinaryCommand(token, base_file_name, line_number);
                 if (binary_str == NULL) {
                     continue;

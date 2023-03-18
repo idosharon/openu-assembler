@@ -11,7 +11,7 @@ LOOP:   jmp L1(#-1,r6)
         mcr amitai
             hello world
         endmcr
-        amitai m1
+        m1
         bne LOOP(r4, r3)
         m1
 
