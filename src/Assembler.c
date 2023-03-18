@@ -8,7 +8,9 @@ int main(int argc, char* argv[]) {
         return 1;
     } else {
         for (; file_index < argc; file_index++) {
-            runAssembler(strdup(argv[file_index]));
+            if(runAssembler(strdup(argv[file_index])) == -1) {
+                return -1;
+            }
         }
     }
     return 0;
@@ -16,29 +18,21 @@ int main(int argc, char* argv[]) {
 
 int runAssembler(char* base_file_name) {
     char* current_file_name;
-    FILE* file;
+    FILE* current_file;
 
-    /* get file name from argv */
-    current_file_name = strdup(base_file_name);
+    /* get current_file name from argv */
+    current_file_name = getFileName(base_file_name, ASM_FILE_EXTENSION);
 
-    /* currently assuming file name has no extension */
-    /* TODO: add support for input with extension, for example: x.as instead of x */
-    strcat(current_file_name, ASM_FILE_EXTENSION);
-
-    /* open the asm file */
-    file = fopen(current_file_name, "r");
-
-    if (file == NULL) {
-        file_error(FILE_OPEN_ERROR, current_file_name);
-    } else {
+    /* open the asm current_file */
+    if ((current_file = openFile(current_file_name, "r"))) {
         info_file("Successfully Loaded", current_file_name);
-        if((current_file_name = preAssemble(file, base_file_name))) {
-            file = fopen(current_file_name, "r");
-            if(file == NULL) {
-                file_error(FILE_OPEN_ERROR, current_file_name);
-                return -1;
+
+        if((current_file_name = preAssemble(current_file, base_file_name))) {
+            if((current_file = openFile(current_file_name, "r"))) {
+                info_file("Successfully Loaded", current_file_name);
+                firstRun(current_file, base_file_name);
             }
-            firstRun(file, base_file_name);
+
         }
     }
 

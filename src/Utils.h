@@ -21,4 +21,9 @@ char* getRegisterNumber(int);
 char* getOpcode(int);
 char* reverse_string(char*);
 
+char* getFileName(char*, char*);
+FILE* openFile(char*, char*);
+
+void free_list(node_t*);
+
 #endif

@@ -10,16 +10,11 @@ typedef struct {
     size_t lines_count;
 } macro_t;
 
-typedef struct {
-    macro_t* macro;
-    struct macro_node_t* next;
-} macro_node_t;
-
 char* preAssemble(FILE*, char*);
-macro_t* findMacro(char*, macro_node_t*);
+macro_t* findMacro(char*, node_t*);
 
 bool isValidMacroName(char*);
-macro_node_t* addMacroNode(macro_node_t*, char*);
+node_t* addMacroNode(node_t*, char*);
 
 
 #endif

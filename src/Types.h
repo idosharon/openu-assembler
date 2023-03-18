@@ -33,6 +33,11 @@ typedef struct {
     char* pre_asm_file;
 } Files;
 
+typedef struct {
+    void* data;
+    struct node_t* next;
+} node_t;
+
 
 
 #endif

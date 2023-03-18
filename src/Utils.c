@@ -106,3 +106,45 @@ char* getOpcode(int index) {
         default: return NULL;
     }
 }
+
+void free_list(node_t* head) {
+    /* free list */
+    node_t* current = head;
+    node_t* next;
+
+    while(current != NULL) {
+        next = (node_t *) current->next;
+        free(current->data);
+        free(current);
+        current = next;
+    }
+}
+
+char *getFileName(char* base, char* ext) {
+    char* file_name;
+    if(!base || !ext) return NULL;
+
+    file_name = (char*) malloc(strlen(base) + strlen(ext) + 2);
+
+    if(file_name) {
+        strcpy(file_name, base);
+        strcat(file_name, ".");
+        strcat(file_name, ext);
+        return file_name;
+    }
+    return NULL;
+}
+
+FILE* openFile(char* file_name, char* mode) {
+    FILE* fp;
+    if(!file_name || !mode) return NULL;
+
+    fp = fopen(file_name, mode);
+
+    if(!fp) {
+        file_error(FILE_OPEN_ERROR, file_name);
+        return NULL;
+    }
+
+    return fp;
+}
