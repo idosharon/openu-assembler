@@ -2,6 +2,7 @@
 
 int main(int argc, char* argv[]) {
     int file_index = 1;
+    fopen("log.txt", "w");
 
     if (argc <= 1) {
         warn(FILE_NOT_SPECIFIED);

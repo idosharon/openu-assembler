@@ -5,7 +5,7 @@
 #include "Consts.h"
 #include "Types.h"
 
-#define is_equal(a, b) (strcmp(a, b) == 0)
+#define isStrEqual(a, b) (strcmp(a, b) == 0)
 
 #define info(msg) printf("[info]: %s\n", msg)
 #define info_file(msg, file_name) printf("[info]: %s: %s\n", msg, file_name)

@@ -53,7 +53,7 @@ int get_command_length(char* binary_cmd) {
 int find_command(char* str) {
     int i;
     for(i = 0; i < NUM_OF_COMMANDS; i++) {
-        if(is_equal(str, commands[i])) {
+        if(isStrEqual(str, commands[i])) {
             return i;
         }
     }
@@ -63,7 +63,7 @@ int find_command(char* str) {
 int find_register(char* str) {
     int i;
     for(i = 0; i < NUM_OF_REGISTERS; i++) {
-        if(is_equal(str, registers[i])) {
+        if(isStrEqual(str, registers[i])) {
             return i;
         }
     }

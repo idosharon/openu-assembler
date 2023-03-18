@@ -94,7 +94,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
 macro_t* findMacro(char* name, node_t* head) {
     macro_t* macro;
     while(head != NULL) {
-        if(is_equal((macro = (macro_t*) head->data)->name, name)) {
+        if(isStrEqual((macro = (macro_t*) head->data)->name, name)) {
             return macro;
         }
         head = (node_t *) head->next;
