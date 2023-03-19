@@ -31,6 +31,7 @@ typedef enum {
 
 /* argument type */
 typedef enum {
+    None = 0,       /* 0000 = 0 */
     Immediate = 1,  /* 0001 = 0 */
     Direct = 2,     /* 0010 = 1 */
     Jump = 4,       /* 0100 = 2 */

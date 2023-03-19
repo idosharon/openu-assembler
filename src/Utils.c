@@ -87,14 +87,14 @@ bool isValidJumpWithParams(char* argument) {
 arg_type get_arg_type(char* token, arg_type types) {
     if(find_command(token) != -1) {
         /* command is preserved name */
-        return -1;
+        return None;
     }
 
     /* r0 = Register, #(num) = Immediate, Label = Direct, Label(..., ...) = Jump */
     if((types & Immediate)
             && (token[0] == '#' && is_number(token + 1))) {
         return Immediate;
-    } else if((types & Jump) && (getJumpWithParams(token))) {
+    } else if((types & Jump) && (isValidJumpWithParams(token))) {
         return Jump;
     } else if((types & Register) && (find_register(token) != -1)) {
         return Register;
@@ -102,7 +102,7 @@ arg_type get_arg_type(char* token, arg_type types) {
         return Direct;
     }
 
-    return -1;
+    return None;
 }
 
 int find_command(char* str) {

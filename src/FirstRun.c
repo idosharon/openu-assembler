@@ -49,6 +49,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     continue;
                 }
 
+                /* delete label from future labels list */
                 deleteLabel(token, &future_label_list);
 
                 label_flag = true;
@@ -165,7 +166,7 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 bool is_jump = (!command.arg1) && (command.arg2 & Jump);
 
-                arg_type source_type = 0, dest_type = 0;
+                arg_type source_type = None, dest_type = None;
 
                 /* if expecting 1 arg */
                 if(command.arg1) {
