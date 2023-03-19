@@ -8,7 +8,6 @@ int firstRun(FILE* file, char* base_file_name) {
 
     /* create list for labels */
     node_t* label_list = NULL;
-    node_t* future_label_list = NULL;
 
     char* current_label = NULL;
     bool label_flag = false;
@@ -16,23 +15,18 @@ int firstRun(FILE* file, char* base_file_name) {
     /* error flag */
     bool error_flag = false;
 
-    /* memory image flag */
-    bool memory_image_flag = false;
-
     /* create list for external and entry labels */
     node_t* extern_list = NULL;
     node_t* entry_list = NULL;
 
-    /* init IC and DC to 0 */
-    size_t IC = 0;
+    /* init IC and DC */
+    size_t IC = START_ADD;
     size_t DC = 0;
-
 
     /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
         /* increase line counter */
         line_number++;
-
         /* split line into tokens */
         token = strtok(strdup(line), SPACE_SEP);
 
@@ -53,9 +47,6 @@ int firstRun(FILE* file, char* base_file_name) {
                     error_flag = true;
                     continue;
                 }
-
-                /* delete label from future labels list */
-                deleteLabel(token, &future_label_list);
             } else {
                 /* label is not valid */
                 line_error(LABEL_SYNTAX_ERROR, base_file_name, line_number);
@@ -66,12 +57,10 @@ int firstRun(FILE* file, char* base_file_name) {
 
         /* check all symbol types */
         if (IS_DATA_SYMBOL(token)) {
-            memory_image_flag = true;
             /* check if label is already defined */
             if (label_flag) {
                 label_list = addLabelNode(label_list, current_label, DC, Data);
             }
-
             /* check for .data symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
                 /* calculate data length */
@@ -92,11 +81,12 @@ int firstRun(FILE* file, char* base_file_name) {
             }
         }
         else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
-            /* get external/entry label */
-            token = strtok(NULL,SPACE_SEP);
 
             /* case: extern symbol */
             if(IS_EXTERN_SYMBOL(token)) {
+                /* get external label */
+                token = strtok(NULL,SPACE_SEP);
+
                 /* if not found raise error */
                 if (token == NULL) {
                     line_error(EXTERN_MISSING_ARGUMENT,base_file_name,line_number);
@@ -116,9 +106,19 @@ int firstRun(FILE* file, char* base_file_name) {
                     continue;
                 }
 
+                /* if the label is already called from external file raise error */
+                if (findLabelInList(token, extern_list)) {
+                    line_error(MULTIPLE_EXTERN_CALLS, base_file_name, line_number);
+                    error_flag = true;
+                    continue;
+                }
                 /* add to external list */
                 extern_list = addLabelNode(extern_list, token, 0, Extern);
             } else {
+
+                /* get entry label */
+                token = strtok(NULL,SPACE_SEP);
+
                 /* if no token found raise error */
                 if (token == NULL) {
                     line_error(ENTRY_MISSING_ARGUMENT,base_file_name,line_number);
@@ -135,22 +135,19 @@ int firstRun(FILE* file, char* base_file_name) {
                     line_error(LABEL_SYNTAX_ERROR,base_file_name,line_number);
                     continue;
                 }
+
+                /* if label is already defined raise error */
+                if (findLabelInList(token, entry_list)) {
+                    line_error(MULTIPLE_ENTRY_CALLS, base_file_name, line_number);
+                    error_flag = true;
+                    continue;
+                }
+
                 /* add to entry list */
                 entry_list = addLabelNode(entry_list, token, 0, Entry);
             }
-
-            /* delete the label from future list if found */
-            deleteLabel(token, &future_label_list);
-
         }
         else {
-            /* if in memory image return code after data error */
-            if(memory_image_flag) {
-                line_error(CODE_AFTER_DATA, base_file_name, line_number);
-                error_flag = true;
-                continue;
-            }
-
             /* add label if needed */
             if (label_flag) {
                 label_list = addLabelNode(label_list, current_label, IC, Code);
@@ -179,14 +176,6 @@ int firstRun(FILE* file, char* base_file_name) {
                         if(!(source_type & command.arg1))
                             line_error(INVALID_ARG_TYPE, base_file_name, line_number);
 
-                        /* if first arg is a label, add it to label list */
-                        if(source_type == Direct) {
-                            if(findLabel(token, label_list, extern_list, entry_list) == NULL
-                                && findLabelInList(token, future_label_list) == NULL) {
-                                future_label_list = addLabelNode(future_label_list, token, IC, Code);
-                            }
-                        }
-
                         command_length++;
 
                     } else {
@@ -209,13 +198,6 @@ int firstRun(FILE* file, char* base_file_name) {
                             line_error(INVALID_ARG_TYPE, base_file_name, line_number);
                             continue;
                         }
-                        /* if second arg is a label, add it to label list */
-                        if(dest_type == Direct) {
-                            if(findLabel(token, label_list, extern_list, entry_list) == NULL
-                                && findLabelInList(token, future_label_list) == NULL) {
-                                future_label_list = addLabelNode(future_label_list, token, IC, Code);
-                            }
-                        }
 
                         /* TODO: Depth analysis of token to get exact length */
                         if(dest_type == Jump) {
@@ -231,8 +213,6 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 }
 
-                printf("\t%d command: %s length: %d\n", line_number, command.name, command_length);
-
                 if((token = strtok(NULL, SPACE_SEP)) != NULL) {
                     line_error(TOO_MANY_ARGS, base_file_name, line_number);
                     continue;
@@ -240,11 +220,10 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 /* if both args are registers, decrease command length by 1 */
                 if(source_type == Register && dest_type == Register) {
-
                     command_length--;
                 }
-
                 IC += command_length;
+                printf("\t%d command: %s length: %d\n", line_number, command.name, command_length);
             } else {
                 line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
                 continue;
@@ -252,46 +231,40 @@ int firstRun(FILE* file, char* base_file_name) {
         }
     }
 
-    IC += START_ADD;
+    /* update DC */
+    updateDC(IC, label_list, extern_list, entry_list, NULL);
     DC += IC;
-
-    /* if all good  create entry and external files from lists */
-    if(!error_flag) {
-        if (entry_list != NULL) {
-            /* create_entry_file(entry_list, base_file_name); */
-        }
-        if (extern_list != NULL) {
-            /* create_extern_file(extern_list, base_file_name); */
-        }
-    }
 
     info_file("Finished first run", base_file_name);
     printf("IC: %d DC: %d\n", IC, DC);
+
+    /* start second run */
+    /*
+    rewind(file);
+    return second_run(IC, DC, label_list, extern_list, entry_list, error_flag, file ,base_file_name);
+    */
     return error_flag;
 }
 
-label_t* findLabel(char* name, node_t* label_list, ...) {
+void updateDC(int IC, node_t* label_list, ...) {
     label_t* label;
     va_list lists;
     va_start(lists, label_list);
     while(label_list != NULL) {
-        if((label = findLabelInList(name, label_list)) != NULL) {
-            return label;
-        }
+        updateDCInList(IC, label_list);
         label_list = va_arg(lists, node_t*);
     }
-    return NULL;
 }
 
-label_t* findLabelInList(char* name, node_t* head) {
+void updateDCInList(int IC, node_t* head) {
     label_t* label;
     while(head != NULL) {
-        if(isStrEqual((label = (label_t*) head->data)->name, name)) {
-            return label;
+        label = (label_t*) head->data;
+        if(label->type == Data) {
+            label->place += IC;
         }
         head = (node_t*) head->next;
     }
-    return NULL;
 }
 
 bool deleteLabel(char* name, node_t** head) {
@@ -316,30 +289,5 @@ bool deleteLabel(char* name, node_t** head) {
     return false;
 }
 
-bool isValidLabel(char* label_name) {
-    /* check if label name is valid - only contains alphabetic and numbers */
-    if (!isValidLabelFormat(label_name)
-            || find_register(label_name) != -1
-            || find_command(label_name) != -1) {
-        return false;
-    }
-    return true;
-}
-
-node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelType) {
-    /* set current label to the new label */
-    label_t* new_label = (label_t*) (malloc(sizeof (label_t)));
-    node_t* new_label_node = (node_t*) (malloc(sizeof (node_t)));
-
-    /* set label name and allocate its data */
-    new_label->name = name;
-    new_label->place = place;
-    new_label->type = labelType;
-
-    /* create new label node and append it to the start of list */
-    new_label_node->data = new_label;
-    new_label_node->next = (struct node_t *) head;
-    return new_label_node;
-}
 
 

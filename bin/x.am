@@ -1,6 +1,7 @@
 MAIN:   mov r3, L1
 LOOP:   jmp L1(#-1,r6)
         prn #-5
+        .extern W
         sub r1, r4
         bne END
         bne LOOP(r4, r3)

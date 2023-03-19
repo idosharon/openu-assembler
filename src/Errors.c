@@ -19,7 +19,9 @@ const char* ERRORS[] = {
         "Too few arguments",
         "Extern too many arguments",
         "Entry too many arguments",
-        "Code after data is not allowed",
+        "Undefined label",
+        "Multiple extern request for label",
+        "Multiple entry calls for label",
 };
 
 const char* WARNINGS[] = {

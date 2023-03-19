@@ -9,23 +9,14 @@
 #define IS_EXTERN_SYMBOL(token) (isStrEqual(token, EXTERN_SYMBOL))
 #define IS_ENTRY_SYMBOL(token) (isStrEqual(token, ENTRY_SYMBOL))
 
-typedef struct {
-    char* name;
-    size_t place;
-    label_type type;
-} label_t;
-
 int firstRun(FILE*, char*);
-label_t* findLabelInList(char *name, node_t *head);
-label_t* findLabel(char*, node_t*, ...);
+
+void updateDCInList(int IC, node_t *head);
+void updateDC(int, node_t*, ...);
 
 char* getBinaryCommand(char*, char*, int);
 
-bool isValidLabel(char*);
 bool deleteLabel(char*, node_t**);
-node_t* addLabelNode(node_t*, char*, size_t, label_type);
-
-int addLabel(char*, node_t*, size_t, label_type);
 
 #endif
 

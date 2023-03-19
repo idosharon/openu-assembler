@@ -2,10 +2,12 @@
 #define TYPES_H
 
 #include "Consts.h"
+#include <ctype.h>
 
 /* define bool */
 typedef enum { false, true } bool;
 
+/*
 typedef struct {
     unsigned bits: BYTE_SIZE;
 } byte;
@@ -13,6 +15,7 @@ typedef struct {
 typedef struct {
     unsigned bits: WORD_SIZE;
 } word;
+*/
 
 /* label type */
 typedef enum {
@@ -44,6 +47,12 @@ typedef struct {
     struct node_t* next;
 } node_t;
 
+typedef struct {
+    char* name;
+    size_t place;
+    label_type type;
+} label_t;
+
 /* command */
 typedef struct {
     char* name;
@@ -61,6 +70,39 @@ typedef struct {
     bool is_jump;
 
 } command_t;
+
+/* binary string */
+typedef struct {
+    int encoding_type: 2;
+    int dest_type: 2;
+    int src_type: 2;
+    int opcode: 4;
+    int first_par_type: 2;
+    int second_par_type: 2;
+} binary_command;
+
+/* binary data */
+typedef struct {
+    int data: 14;
+} binary_data;
+
+typedef struct {
+    int encoding_type: 2;
+    int data: 12;
+} binary_param;
+
+typedef struct {
+    int encoding_type: 2;
+    int dest_register: 6;
+    int src_register: 6;
+} binary_two_registers;
+
+typedef union {
+    binary_command command;
+    binary_data data;
+    binary_param param;
+    binary_two_registers two_registers;
+} word;
 
 extern const command_t commands[NUM_OF_COMMANDS];
 

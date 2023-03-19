@@ -1,38 +1,7 @@
 #include "Utils.h"
 
 
-int appendBinaryToFile(FILE* fp, word binary) {
-    if(!fp) return -1;
 
-    while(binary.bits >>= 1) {
-        fputc((binary.bits & 1 ? '1' : '0'), fp);
-    }
-
-    return 0;
-}
-
-word calculateOnsComplete(word* binary) {
-    word neg_word;
-    neg_word.bits = binary->bits;
-
-
-
-
-    return neg_word;
-}
-
-char* reverse_string(char* str0) {
-    char* str;
-    int i;
-    str = strdup(str0);
-    int len = strlen(str);
-    for (i = 0; i < len / 2; i++) {
-        char temp = str[i];
-        str[i] = str[len - i - 1];
-        str[len - i - 1] = temp;
-    }
-    return str;
-}
 
 bool is_number(char* str) {
     /* TODO: check if number is in range */
@@ -46,8 +15,13 @@ bool is_number(char* str) {
     return true;
 }
 
-int get_command_length(char* token, size_t command_index) {
-
+bool isValidLabel(char* label_name) {
+    /* check if label name is valid - only contains alphabetic and numbers */
+    if (!isValidLabelFormat(label_name)
+        || find_register(label_name) != -1
+        || find_command(label_name) != -1)
+        return false;
+    return true;
 }
 
 bool isValidLabelFormat(char* label_name) {
@@ -135,6 +109,47 @@ int find_register(char* str) {
     return -1;
 }
 
+
+node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelType) {
+    /* set current label to the new label */
+    label_t* new_label = (label_t*) (malloc(sizeof (label_t)));
+    node_t* new_label_node = (node_t*) (malloc(sizeof (node_t)));
+
+    /* set label name and allocate its data */
+    new_label->name = name;
+    new_label->place = place;
+    new_label->type = labelType;
+
+    /* create new label node and append it to the start of list */
+    new_label_node->data = new_label;
+    new_label_node->next = (struct node_t *) head;
+    return new_label_node;
+}
+
+label_t* findLabel(char* name, node_t* label_list, ...) {
+    label_t* label;
+    va_list lists;
+    va_start(lists, label_list);
+    while(label_list != NULL) {
+        if((label = findLabelInList(name, label_list)) != NULL) {
+            return label;
+        }
+        label_list = va_arg(lists, node_t*);
+    }
+    return NULL;
+}
+
+label_t* findLabelInList(char* name, node_t* head) {
+    label_t* label;
+    while(head != NULL) {
+        if(isStrEqual((label = (label_t*) head->data)->name, name)) {
+            return label;
+        }
+        head = (node_t*) head->next;
+    }
+    return NULL;
+}
+
 char* getRegisterNumber(int index) {
     switch (index) {
         case 0: return "000";
@@ -212,3 +227,5 @@ FILE* openFile(char* file_name, char* mode) {
 
     return fp;
 }
+
+

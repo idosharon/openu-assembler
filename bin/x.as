@@ -7,7 +7,7 @@ LOOP:   jmp L1(#-1,r6)
         bne END
         endmcr
         prn #-5
-
+        .extern W
         mcr amitai
             hello world
         endmcr
