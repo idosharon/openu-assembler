@@ -23,9 +23,9 @@ int firstRun(FILE* file, char* base_file_name) {
     node_t* extern_list = NULL;
     node_t* entry_list = NULL;
 
-    /* init IC and DC to START ADDRESS = 100 */
-    size_t IC = START_ADD;
-    size_t DC = START_ADD;
+    /* init IC and DC to 0 */
+    size_t IC = 0;
+    size_t DC = 0;
 
 
     /* read new line from file */
@@ -245,13 +245,6 @@ int firstRun(FILE* file, char* base_file_name) {
                 }
 
                 IC += command_length;
-                /*binary_str = getBinaryCommand(token, base_file_name, line_number);
-                if (binary_str == NULL) {
-                    continue;
-                }
-                else {
-                    IC += get_command_length(binary_str);
-                }*/
             } else {
                 line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
                 continue;
@@ -259,16 +252,23 @@ int firstRun(FILE* file, char* base_file_name) {
         }
     }
 
-    /* if all good  create entry and external files from lists */
-    /*if (entry_list != NULL) {
-        create_entry_file(entry_list, base_file_name);
-    }
-    if (extern_list != NULL) {
-        create_extern_file(extern_list, base_file_name);
-    }*/
+    DC += IC;
 
+    IC += START_ADD;
+    DC += START_ADD;
+
+    /* if all good  create entry and external files from lists */
+    if(!error_flag) {
+        if (entry_list != NULL) {
+            /* create_entry_file(entry_list, base_file_name); */
+        }
+        if (extern_list != NULL) {
+            /* create_extern_file(extern_list, base_file_name); */
+        }
+    }
 
     info_file("Finished first run", base_file_name);
+    printf("IC: %d DC: %d\n", IC, DC);
     return error_flag;
 }
 
