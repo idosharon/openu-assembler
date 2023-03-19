@@ -46,27 +46,69 @@ bool is_number(char* str) {
     return true;
 }
 
-int get_command_length(char* token) {
-    /* check command type (group) */
-    if(isStrEqual(token, "mov") || isStrEqual(token, "cmp") || isStrEqual(token, "add") ||
-            isStrEqual(token, "sub") || isStrEqual(token, "lea")) {
-        return 2;
-    } else if(isStrEqual(token, "clr") || isStrEqual(token, "not") || isStrEqual(token, "inc") ||
-            isStrEqual(token, "dec") || isStrEqual(token, "jmp") || isStrEqual(token, "bne") ||
-            isStrEqual(token, "red") || isStrEqual(token, "prn") || isStrEqual(token, "jsr")) {
-        return 1;
-    } else if(isStrEqual(token, "rts") || isStrEqual(token, "stop")) {
-        return 0;
-    }
-    token = strtok(NULL, SPACE_SEP);
+int get_command_length(char* token, size_t command_index) {
 
-    return 0;
+}
+
+bool isValidLabelFormat(char* label_name) {
+    bool endLabel = false;
+    if (!isalpha(*label_name))
+        return false;
+    for(; *label_name != '\0'; label_name++) {
+        if (endLabel) return false;
+        if (*label_name == LABEL_SEP) {
+            endLabel = true;
+        }
+        else if(!isalpha(*label_name) && !isdigit(*label_name))
+            return false;
+    }
+    return true;
+}
+
+bool isValidJumpWithParams(char* argument) {
+    char* p = argument;
+
+    bool startParams = false;
+    int num_of_params = 0;
+
+    arg_type first_param_type;
+    arg_type second_param_type;
+
+    int length = 1;
+
+    if (!isalpha(*p))
+        return false;
+
+
+
+    return false;
+}
+
+arg_type get_arg_type(char* token, arg_type types) {
+    if(find_command(token) != -1) {
+        /* command is preserved name */
+        return -1;
+    }
+
+    /* r0 = Register, #(num) = Immediate, Label = Direct, Label(..., ...) = Jump */
+    if((types & Immediate)
+            && (token[0] == '#' && is_number(token + 1))) {
+        return Immediate;
+    } else if((types & Jump) && (getJumpWithParams(token))) {
+        return Jump;
+    } else if((types & Register) && (find_register(token) != -1)) {
+        return Register;
+    } else if((types & Direct) && (isValidLabelFormat(token))) {
+        return Direct;
+    }
+
+    return -1;
 }
 
 int find_command(char* str) {
     int i;
     for(i = 0; i < NUM_OF_COMMANDS; i++) {
-        if(isStrEqual(str, commands[i])) {
+        if(isStrEqual(str, commands[i].name)) {
             return i;
         }
     }

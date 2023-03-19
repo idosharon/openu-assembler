@@ -14,12 +14,15 @@ int appendBinaryToFile(FILE*, word);
 word calculateOnsComplete(word*);
 
 bool is_number(char*);
+
 int find_command(char*);
-int get_command_length(char*);
+
+bool isValidLabelFormat(char*);
+
+bool isValidJumpWithParams(char*);
+int get_command_length(char*, size_t);
+arg_type get_arg_type(char*, arg_type);
 int find_register(char*);
-char* getRegisterNumber(int);
-char* getOpcode(int);
-char* reverse_string(char*);
 
 char* getFileName(char*, char*);
 FILE* openFile(char*, char*);

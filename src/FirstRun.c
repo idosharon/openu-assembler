@@ -1,15 +1,23 @@
 #include "FirstRun.h"
 
-void firstRun(FILE* file, char* base_file_name) {
+int firstRun(FILE* file, char* base_file_name) {
     char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
     size_t line_number = 0;
+    size_t command_index = 0;
     char* token;
 
+    /* create list for labels */
     node_t* label_list = NULL;
     node_t* future_label_list = NULL;
 
     char* current_label = NULL;
     bool label_flag = false;
+
+    /* error flag */
+    bool error_flag = false;
+
+    /* memory image flag */
+    bool memory_image_flag = false;
 
     /* create list for external and entry labels */
     node_t* extern_list = NULL;
@@ -28,35 +36,51 @@ void firstRun(FILE* file, char* base_file_name) {
         /* split line into tokens */
         token = strtok(strdup(line), SPACE_SEP);
 
-        /* check if there is a label */
-        if(strchr(line,LABEL_SEP)) {
-            if (isValidLabelName(token)) {
+        label_flag = false;
+
+        /* check if there is a label, TODO: improve maybe move to other function */
+        if(strchr(line, LABEL_SEP)) {
+            /* check if label is valid */
+            if (isValidLabel(token)) {
+                /* check if label exists in future labels */
+                if (findLabel(current_label, label_list)) {
+                    line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number);
+                    error_flag = true;
+                    continue;
+                }
+
+                deleteLabel(token, &future_label_list);
+
                 label_flag = true;
                 current_label = token;
                 current_label[strlen(current_label)-1] = '\0';
-                token = strtok(NULL,SPACE_SEP);
+                token = strtok(NULL, SPACE_SEP);
             } else {
+                /* label is not valid */
                 line_error(LABEL_SYNTAX_ERROR, base_file_name, line_number);
+                error_flag = true;
                 continue;
             }
         }
 
+        /* check all symbol types */
         if (IS_DATA_SYMBOL(token)) {
+            memory_image_flag = true;
+            /* check if label is already defined */
             if (label_flag) {
-                if (findLabel(current_label,label_list)) {
-                    line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number);
-                    continue;
-                }
-                else
-                    label_list = addLabelNode(label_list, current_label, DC, Data);
+                label_list = addLabelNode(label_list, current_label, DC, Data);
             }
+
+            /* check for .data symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
                 /* calculate data length */
-                while((token = strtok(NULL,COMMA_SEP)) != NULL) {
+                while((token = strtok(NULL, COMMA_SEP)) != NULL) {
                     if (is_number(token)) {
+                        /* TODO: calculate if number if out of range and number of words needed for it */
                         DC++;
                     } else {
                         line_error(DATA_SYNTAX_ERROR, base_file_name,line_number);
+                        error_flag = true;
                         continue;
                     }
                 }
@@ -67,42 +91,152 @@ void firstRun(FILE* file, char* base_file_name) {
             }
         }
         else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
+            /* get external/entry label */
+            token = strtok(NULL,SPACE_SEP);
+
+            /* case: extern symbol */
             if(IS_EXTERN_SYMBOL(token)) {
-                token = strtok(NULL,SPACE_SEP);
+                /* if not found raise error */
                 if (token == NULL) {
                     line_error(EXTERN_MISSING_ARGUMENT,base_file_name,line_number);
+                    error_flag = true;
                     continue;
                 }
-                if (!isValidLabelName(token)) {
+                /* if more than one found raise error */
+                if(strtok(NULL,SPACE_SEP) != NULL) {
+                    line_error(EXTERN_TOO_MANY_ARGUMENTS, base_file_name,line_number);
+                    error_flag = true;
+                    continue;
+                }
+                /* if the label is not valid raise error */
+                if (!isValidLabel(token)) {
                     line_error(LABEL_SYNTAX_ERROR,base_file_name,line_number);
+                    error_flag = true;
                     continue;
                 }
+
+                /* add to external list */
                 extern_list = addLabelNode(extern_list, token, 0, Extern);
-            }
-            else {
-                token = strtok(NULL,SPACE_SEP);
+            } else {
+                /* if no token found raise error */
                 if (token == NULL) {
                     line_error(ENTRY_MISSING_ARGUMENT,base_file_name,line_number);
                     continue;
                 }
-                if (!isValidLabelName(token)) {
+                /* if more than one found raise error */
+                if(strtok(NULL,SPACE_SEP) != NULL) {
+                    line_error(ENTRY_TOO_MANY_ARGUMENTS, base_file_name,line_number);
+                    error_flag = true;
+                    continue;
+                }
+                /* if label is not valid raise error */
+                if (!isValidLabel(token)) {
                     line_error(LABEL_SYNTAX_ERROR,base_file_name,line_number);
                     continue;
                 }
+                /* add to entry list */
                 entry_list = addLabelNode(entry_list, token, 0, Entry);
             }
+
+            /* delete the label from future list if found */
+            deleteLabel(token, &future_label_list);
+
         }
         else {
-            if (label_flag) {
-                if (findLabel(current_label, label_list)) {
-                    line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number);
-                    continue;
-                } else {
-                    label_list = addLabelNode(label_list, current_label, IC, Code);
-                }
+            /* if in memory image return code after data error */
+            if(memory_image_flag) {
+                line_error(CODE_AFTER_DATA, base_file_name, line_number);
+                error_flag = true;
+                continue;
             }
-            if (find_command(token) != -1) {
-                IC += get_command_length(token);
+
+            /* add label if needed */
+            if (label_flag) {
+                label_list = addLabelNode(label_list, current_label, IC, Code);
+            }
+
+            /* get current command index */
+            if ((command_index = find_command(token)) != -1) {
+
+                /* check command type (group) */
+                short command_length = 1;
+                int args_counter = 0;
+                command_t command = commands[command_index];
+
+                bool is_jump = (!command.arg1) && (command.arg2 & Jump);
+
+                arg_type source_type = 0, dest_type = 0;
+
+                /* if expecting 1 arg */
+                if(command.arg1) {
+                    token = strtok(NULL, COMMA_SEP);
+                    if(token) {
+                        if((source_type = get_arg_type(token, Immediate | Direct | Register)) == -1) {
+                            line_error(PRESERVED_KEYWORD, base_file_name, line_number);
+                            continue;
+                        }
+                        if(!(source_type & command.arg1))
+                            line_error(INVALID_ARG_TYPE, base_file_name, line_number);
+
+                        /* if first arg is a label, add it to label list */
+                        if(source_type == Direct) {
+                            if(findLabel(token, label_list) == NULL) {
+                                addLabelNode(future_label_list, token, 0, Code);
+                            }
+                        }
+
+                        command_length++;
+
+
+
+                    } else {
+                        line_error(TOO_FEW_ARGS, base_file_name, line_number);
+                        continue;
+                    }
+                }
+
+                /* if expecting 2 args, check if there is a second arg */
+                if(command.arg2) {
+                    if(is_jump) {
+                        token = strtok(NULL, OPEN_BRACKET);
+                        if(!isValidLabel(token)) {
+                            line_error(LABEL_SYNTAX_ERROR, base_file_name, line_number);
+                            continue;
+                        }
+
+
+                    } else {
+                        token = strtok(NULL, COMMA_SEP);
+
+                        if(token) {
+                            if ((dest_type = get_arg_type(token, Immediate | Jump | Direct | Register)) == -1) {
+                                line_error(PRESERVED_KEYWORD, base_file_name, line_number);
+                                continue;
+                            }
+                            if (!(dest_type & command.arg2))
+                                line_error(INVALID_ARG_TYPE, base_file_name, line_number);
+                            command_length++;
+                        } else {
+                            line_error(TOO_FEW_ARGS, base_file_name, line_number);
+                            continue;
+                        }
+                    }
+
+
+                }
+
+                if((token = strtok(NULL, SPACE_SEP)) != NULL) {
+                    line_error(TOO_MANY_ARGS, base_file_name, line_number);
+                    continue;
+                }
+
+                /* if both args are registers, decrease command length by 1 */
+                if(source_type == Register && dest_type == Register) {
+
+                    command_length--;
+                }
+
+                IC += command_length;
                 /*binary_str = getBinaryCommand(token, base_file_name, line_number);
                 if (binary_str == NULL) {
                     continue;
@@ -127,6 +261,7 @@ void firstRun(FILE* file, char* base_file_name) {
 
 
     info_file("Finished first run", base_file_name);
+    return error_flag;
 }
 
 
@@ -142,28 +277,41 @@ label_t* findLabel(char* name, node_t* head) {
     return NULL;
 }
 
-bool isValidLabelName(char* label_name) {
-    /* check if label name is valid - only contains alphabetic and numbers */
-    bool endLabel = false;
-    if (!isalpha(*label_name))
-        return false;
-    for(; *label_name != '\0'; label_name++) {
-        if (endLabel) return false;
-        if (*label_name == LABEL_SEP) {
-            endLabel = true;
+bool deleteLabel(char* name, node_t** head) {
+    node_t* current = *head;
+    node_t* prev = NULL;
+    label_t* label;
+    while(current != NULL) {
+        if(isStrEqual((label = (label_t*) current->data)->name, name)) {
+            if(prev == NULL) {
+                *head = (node_t*) current->next;
+            } else {
+                prev->next = current->next;
+            }
+            free(label->name);
+            free(label);
+            free(current);
+            return true;
         }
-        else if(!isalpha(*label_name) && !isdigit(*label_name))
-            return false;
+        prev = current;
+        current = (node_t*) current->next;
     }
-    if (find_register(label_name) != -1 || find_command(label_name) != -1) {
+    return false;
+}
+
+bool isValidLabel(char* label_name) {
+    /* check if label name is valid - only contains alphabetic and numbers */
+    if (!isValidLabelFormat(label_name)
+            || find_register(label_name) != -1
+            || find_command(label_name) != -1) {
         return false;
     }
     return true;
 }
 
-node_t* addLabelNode(node_t* head, char* name, int place, label_type labelType) {
+node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelType) {
     /* set current label to the new label */
-    label_t * new_label = (label_t*) (malloc(sizeof (label_t)));
+    label_t* new_label = (label_t*) (malloc(sizeof (label_t)));
     node_t* new_label_node = (node_t*) (malloc(sizeof (node_t)));
 
     /* set label name and allocate its data */
@@ -178,144 +326,3 @@ node_t* addLabelNode(node_t* head, char* name, int place, label_type labelType) 
 }
 
 
-
-/* commands binary strings */
-char* getBinaryMov(char* token, char* base_file_name, int line_number) {
-
-    /* build the binary string code from left to right and then reverse it */
-
-    char *binary_str = (char *) (malloc(sizeof(char) * WORD_SIZE));
-    char *operand1 = token;
-    char *operand2;
-    char *opcode = (char*) (malloc(sizeof(char) * OPCODE_SIZE));
-
-    binary_str[0] = '\0';
-    opcode[0] = '\0';
-    operand1 = strtok(NULL, COMMA_SEP SPACE_SEP);
-    operand2 = operand1;
-    operand2 = strtok(NULL, COMMA_SEP SPACE_SEP);
-
-
-    if (operand1 == NULL || operand2 == NULL) {
-        line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-        return NULL;
-    }
-    if (find_register(operand1) != -1) {
-        if (find_register(operand2) != -1) {
-            /* mov r1,r2 */
-            binary_str = strcat(binary_str, "001111");
-            opcode = getOpcode(MOV);
-            opcode = reverse_string(opcode);
-            binary_str = strcat(binary_str, opcode);
-            binary_str = strcat(binary_str, "0000");
-            binary_str = reverse_string(binary_str);
-            operand2 = strtok(NULL, COMMA_SEP);
-            if (operand2 != NULL) {
-                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-                return NULL;
-            }
-            return binary_str;
-        } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
-            line_error(INVALID_DEST_ARG, base_file_name, line_number);
-            return NULL;
-        } else if (isValidLabelName(operand2)) {
-            /* mov r1, LABEL */
-            binary_str = strcat(binary_str, "001011");
-            opcode = getOpcode(MOV);
-            opcode = reverse_string(opcode);
-            binary_str = strcat(binary_str, opcode);
-            binary_str = strcat(binary_str, "0000");
-            binary_str = reverse_string(binary_str);
-            operand2 = strtok(NULL, COMMA_SEP);
-            if (operand2 != NULL) {
-                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-                return NULL;
-            }
-            return binary_str;
-        } else {
-            line_error(INVALID_DEST_ARG, base_file_name, line_number);
-            return NULL;
-        }
-    } else if (strchr(operand1, NUMBER_SYMBOL) != NULL) {
-        if (is_number(operand1 + 1)) {
-            if (find_register(operand2) != -1) {
-                /* mov #1,r1 */
-                binary_str = strcat(binary_str, "001100");
-                opcode = getOpcode(MOV);
-                opcode = reverse_string(opcode);
-                binary_str = strcat(binary_str, opcode);
-                binary_str = strcat(binary_str, "0000");
-                binary_str = reverse_string(binary_str);
-                operand2 = strtok(NULL, COMMA_SEP);
-                if (operand2 != NULL) {
-                    line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-                    return NULL;
-                }
-                return binary_str;
-            } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
-                line_error(INVALID_DEST_ARG, base_file_name, line_number);
-                return NULL;
-            } else if (isValidLabelName(operand2)) {
-                /* mov #1, LABEL */
-                binary_str = strcat(binary_str, "001000");
-                opcode = getOpcode(MOV);
-                opcode = reverse_string(opcode);
-                binary_str = strcat(binary_str, opcode);
-                binary_str = strcat(binary_str, "0000");
-                binary_str = reverse_string(binary_str);
-                operand2 = strtok(NULL, COMMA_SEP);
-                if (operand2 != NULL) {
-                    line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-                    return NULL;
-                }
-                return binary_str;
-
-            } else {
-                line_error(INVALID_DEST_ARG, base_file_name, line_number);
-                return NULL;
-            }
-        } else {
-            line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
-            return NULL;
-        }
-    } else if (isValidLabelName(operand1)) {
-        if (find_register(operand2) != -1) {
-            /* mov LABEL, r1 */
-            binary_str = strcat(binary_str, "001110");
-            opcode = getOpcode(MOV);
-            opcode = reverse_string(opcode);
-            binary_str = strcat(binary_str, opcode);
-            binary_str = strcat(binary_str, "0000");
-            binary_str = reverse_string(binary_str);
-            operand2 = strtok(NULL, COMMA_SEP);
-            if (operand2 != NULL) {
-                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-                return NULL;
-            }
-            return binary_str;
-        } else if (strchr(operand2, NUMBER_SYMBOL) != NULL) {
-            line_error(INVALID_DEST_ARG, base_file_name, line_number);
-            return NULL;
-        } else if (isValidLabelName(operand2)) {
-            /* mov LABEL, LABEL */
-            binary_str = strcat(binary_str, "001010");
-            opcode = getOpcode(MOV);
-            opcode = reverse_string(opcode);
-            binary_str = strcat(binary_str, opcode);
-            binary_str = strcat(binary_str, "0000");
-            binary_str = reverse_string(binary_str);
-            operand2 = strtok(NULL, COMMA_SEP);
-            if (operand2 != NULL) {
-                line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-                return NULL;
-            }
-            return binary_str;
-        } else {
-            line_error(INVALID_DEST_ARG, base_file_name, line_number);
-            return NULL;
-        }
-    } else {
-        line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
-        return NULL;
-    }
-}

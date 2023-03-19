@@ -25,11 +25,16 @@
 #define COMMENT_CHAR ';'
 #define LINE_BREAK "\n"
 #define SPACE_SEP " \t\r"LINE_BREAK
-#define COMMA_SEP ","
+#define COMMA_SEP ","SPACE_SEP
 #define NUMBER_SYMBOL '#'
 
 /* Labels */
 #define LABEL_SEP ':'
+
+/* Jump command format */
+#define OPEN_BRACKET "("
+#define CLOSE_BRACKET ")"
+#define COMMA ','
 
 /* Macros */
 #define START_MACRO_SYMBOL "mcr"
@@ -44,28 +49,8 @@
 
 /* All commands */
 #define NUM_OF_COMMANDS 16
-extern const char* commands[NUM_OF_COMMANDS];
 
 /* command types */
-typedef enum {
-    MOV,
-    CMP,
-    ADD,
-    SUB,
-    NOT,
-    CLR,
-    LEA,
-    INC,
-    DEC,
-    JMP,
-    BNE,
-    RED,
-    PRN,
-    JSR,
-    RTS,
-    STOP
-} COMMANDS_INDEX;
-
 #define NUM_OF_REGISTERS 8
 extern const char* registers[NUM_OF_REGISTERS];
 /* register types */

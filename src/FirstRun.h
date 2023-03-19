@@ -11,18 +11,20 @@
 
 typedef struct {
     char* name;
-    int place;
+    size_t place;
     label_type type;
 } label_t;
 
-void firstRun(FILE*, char*);
+int firstRun(FILE*, char*);
 label_t* findLabel(char*, node_t*);
 
 char* getBinaryCommand(char*, char*, int);
 
+bool isValidLabel(char*);
+bool deleteLabel(char*, node_t**);
+node_t* addLabelNode(node_t*, char*, size_t, label_type);
 
-bool isValidLabelName(char*);
-node_t* addLabelNode(node_t*, char*, int , label_type);
+int addLabel(char*, node_t*, size_t, label_type);
 
 #endif
 

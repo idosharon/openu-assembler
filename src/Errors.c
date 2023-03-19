@@ -12,12 +12,17 @@ const char* ERRORS[] = {
         "Command not found",
         "Command syntax error",
         "Invalid destination argument",
-        "Invalid source argument"
-
+        "Invalid source argument",
+        "Invalid Argument type",
+        "Preserved keyword error",
+        "Too many arguments",
+        "Too few arguments",
+        "Extern too many arguments",
+        "Entry too many arguments",
+        "Code after data is not allowed",
 };
 
 const char* WARNINGS[] = {
         "No file was specified",
         "Macro syntax warning"
 };
-
