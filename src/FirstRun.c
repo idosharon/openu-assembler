@@ -42,6 +42,11 @@ int firstRun(FILE* file, char* base_file_name) {
         if(strchr(line, LABEL_SEP)) {
             /* check if label is valid */
             if (isValidLabel(token)) {
+                label_flag = true;
+                current_label = token;
+                current_label[strlen(current_label)-1] = '\0';
+                token = strtok(NULL, SPACE_SEP);
+
                 /* check if label exists in future labels */
                 if (findLabelInList(current_label, label_list)) {
                     line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number);
@@ -51,11 +56,6 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 /* delete label from future labels list */
                 deleteLabel(token, &future_label_list);
-
-                label_flag = true;
-                current_label = token;
-                current_label[strlen(current_label)-1] = '\0';
-                token = strtok(NULL, SPACE_SEP);
             } else {
                 /* label is not valid */
                 line_error(LABEL_SYNTAX_ERROR, base_file_name, line_number);
@@ -160,7 +160,7 @@ int firstRun(FILE* file, char* base_file_name) {
             if ((command_index = find_command(token)) != -1) {
 
                 /* check command type (group) */
-                short command_length = 1;
+                int command_length = 1;
                 int args_counter = 0;
                 command_t command = commands[command_index];
 
@@ -181,7 +181,8 @@ int firstRun(FILE* file, char* base_file_name) {
 
                         /* if first arg is a label, add it to label list */
                         if(source_type == Direct) {
-                            if(findLabelInList(token, label_list) == NULL && findLabelInList(token, future_label_list) == NULL) {
+                            if(findLabel(token, label_list, extern_list, entry_list) == NULL
+                                && findLabelInList(token, future_label_list) == NULL) {
                                 future_label_list = addLabelNode(future_label_list, token, IC, Code);
                             }
                         }
@@ -196,9 +197,10 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 /* if expecting 2 args, check if there is a second arg */
                 if(command.arg2) {
-                    token = strtok(NULL, is_jump ? "()" COMMA_SEP : COMMA_SEP);
-
+                    token = strtok(NULL, is_jump ? LINE_BREAK : COMMA_SEP);
+                    /* ok I have jump command - check for valid syntax */
                     if(token) {
+                        /* ok lets check for Jump type */
                         if ((dest_type = get_arg_type(token, Immediate | Jump | Direct | Register)) == None) {
                             line_error(PRESERVED_KEYWORD, base_file_name, line_number);
                             continue;
@@ -209,18 +211,27 @@ int firstRun(FILE* file, char* base_file_name) {
                         }
                         /* if second arg is a label, add it to label list */
                         if(dest_type == Direct) {
-                            if(findLabel(token, label_list, extern_list, entry_list) == NULL && findLabelInList(token, future_label_list) == NULL) {
+                            if(findLabel(token, label_list, extern_list, entry_list) == NULL
+                                && findLabelInList(token, future_label_list) == NULL) {
                                 future_label_list = addLabelNode(future_label_list, token, IC, Code);
                             }
                         }
-                        command_length++;
+
+                        /* TODO: Depth analysis of token to get exact length */
+                        if(dest_type == Jump) {
+                            /* get jump params and check the length of overall command */
+                            command_length += getJumpParamsLength(token);
+                        } else {
+                            command_length++;
+                        }
                     } else {
                         line_error(TOO_FEW_ARGS, base_file_name, line_number);
                         continue;
                     }
 
-
                 }
+
+                printf("\t%d command: %s length: %d\n", line_number, command.name, command_length);
 
                 if((token = strtok(NULL, SPACE_SEP)) != NULL) {
                     line_error(TOO_MANY_ARGS, base_file_name, line_number);
@@ -261,11 +272,17 @@ int firstRun(FILE* file, char* base_file_name) {
     return error_flag;
 }
 
-label_t* findLabel(char* name, node_t* label_list, node_t* extenal_list, node_t* entry_list) {
+label_t* findLabel(char* name, node_t* label_list, ...) {
     label_t* label;
-    return (findLabelInList(name, label_list) != NULL) ? findLabelInList(name, label_list) :
-           (findLabelInList(name, extenal_list) != NULL) ? findLabelInList(name, extenal_list) :
-           (findLabelInList(name, entry_list) != NULL) ? findLabelInList(name, entry_list) : NULL;
+    va_list lists;
+    va_start(lists, label_list);
+    while(label_list != NULL) {
+        if((label = findLabelInList(name, label_list)) != NULL) {
+            return label;
+        }
+        label_list = va_arg(lists, node_t*);
+    }
+    return NULL;
 }
 
 label_t* findLabelInList(char* name, node_t* head) {

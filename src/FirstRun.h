@@ -17,7 +17,7 @@ typedef struct {
 
 int firstRun(FILE*, char*);
 label_t* findLabelInList(char *name, node_t *head);
-label_t* findLabel(char*, node_t*, node_t* , node_t*);
+label_t* findLabel(char*, node_t*, ...);
 
 char* getBinaryCommand(char*, char*, int);
 

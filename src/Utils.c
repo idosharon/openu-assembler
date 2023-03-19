@@ -65,30 +65,33 @@ bool isValidLabelFormat(char* label_name) {
     return true;
 }
 
-bool isValidJumpWithParams(char* argument) {
-    char* p;
+int getJumpParamsLength(char* params_str) {
+    int length = 0;
+    params_str = strdup(params_str);
 
-    bool startParams = false;
-    int num_of_params = 0;
+    if(!params_str) return -1;
 
-    arg_type first_param_type;
-    arg_type second_param_type;
+    arg_type first_param_type = None;
+    arg_type second_param_type = None;
 
-    int length = 1;
-    strcpy(p,argument);
-    p = strtok(p,"(),");
-    if(!isValidLabelFormat(p)) return false;
-    p = strtok(NULL,"(),");
-    if(!p) return false;
-    first_param_type = get_arg_type(p,Register | Immediate | Direct);
-    if (first_param_type == None) return false;
-    p = strtok(NULL,"(),");
-    if(!p) return false;
-    second_param_type = get_arg_type(p,Register | Immediate | Direct);
-    if (second_param_type == None) return false;
-    p = strtok(NULL,"(),");
-    if(p) return false;
-    return true;
+    /* check label */
+    params_str = strtok(params_str, JMP_PARAMS_SEP);
+    if(!params_str || !isValidLabelFormat(params_str)) return -1;
+    length++;
+
+    /* check first param */
+    params_str = strtok(NULL, JMP_PARAMS_SEP);
+    if(!params_str || (first_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
+    length++;
+
+    /* check second param */
+    params_str = strtok(NULL, JMP_PARAMS_SEP);
+    if(!params_str || (second_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
+    length++;
+
+    if(first_param_type == Register && second_param_type == Register) length--;
+
+    return length;
 }
 
 arg_type get_arg_type(char* token, arg_type types) {
@@ -101,7 +104,7 @@ arg_type get_arg_type(char* token, arg_type types) {
     if((types & Immediate)
             && (token[0] == '#' && is_number(token + 1))) {
         return Immediate;
-    } else if((types & Jump) && (isValidJumpWithParams(token))) {
+    } else if((types & Jump) && (getJumpParamsLength(token) != -1)) {
         return Jump;
     } else if((types & Register) && (find_register(token) != -1)) {
         return Register;

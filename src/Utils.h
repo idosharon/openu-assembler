@@ -19,7 +19,7 @@ int find_command(char*);
 
 bool isValidLabelFormat(char*);
 
-bool isValidJumpWithParams(char*);
+int getJumpParamsLength(char*);
 int get_command_length(char*, size_t);
 arg_type get_arg_type(char*, arg_type);
 int find_register(char*);
