@@ -252,10 +252,8 @@ int firstRun(FILE* file, char* base_file_name) {
         }
     }
 
-    DC += IC;
-
     IC += START_ADD;
-    DC += START_ADD;
+    DC += IC;
 
     /* if all good  create entry and external files from lists */
     if(!error_flag) {
