@@ -66,7 +66,7 @@ bool isValidLabelFormat(char* label_name) {
 }
 
 bool isValidJumpWithParams(char* argument) {
-    char* p = argument;
+    char* p;
 
     bool startParams = false;
     int num_of_params = 0;
@@ -75,13 +75,20 @@ bool isValidJumpWithParams(char* argument) {
     arg_type second_param_type;
 
     int length = 1;
-
-    if (!isalpha(*p))
-        return false;
-
-
-
-    return false;
+    strcpy(p,argument);
+    p = strtok(p,"(),");
+    if(!isValidLabelFormat(p)) return false;
+    p = strtok(NULL,"(),");
+    if(!p) return false;
+    first_param_type = get_arg_type(p,Register | Immediate | Direct);
+    if (first_param_type == None) return false;
+    p = strtok(NULL,"(),");
+    if(!p) return false;
+    second_param_type = get_arg_type(p,Register | Immediate | Direct);
+    if (second_param_type == None) return false;
+    p = strtok(NULL,"(),");
+    if(p) return false;
+    return true;
 }
 
 arg_type get_arg_type(char* token, arg_type types) {
