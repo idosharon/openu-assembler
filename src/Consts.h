@@ -26,6 +26,8 @@
 #define LINE_BREAK "\n"
 #define SPACE_SEP " \t\r"LINE_BREAK
 #define COMMA_SEP ","SPACE_SEP
+#define STRING_QUOTE '"'
+#define NULL_TERMINATOR '\0'
 
 #define JMP_OPEN_BRACKET "("SPACE_SEP
 #define JMP_CLOSE_BRACKET ")"SPACE_SEP

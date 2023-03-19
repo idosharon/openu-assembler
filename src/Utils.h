@@ -10,6 +10,11 @@
 #define info(msg) printf("[info]: %s\n", msg)
 #define info_file(msg, file_name) printf("[info]: %s: %s\n", msg, file_name)
 
+#define IS_DATA_SYMBOL(token) (isStrEqual(token, DATA_SYMBOL) || isStrEqual(token, STRING_SYMBOL))
+#define IS_EXTERN_SYMBOL(token) (isStrEqual(token, EXTERN_SYMBOL))
+#define IS_ENTRY_SYMBOL(token) (isStrEqual(token, ENTRY_SYMBOL))
+
+
 bool is_number(char*);
 
 int find_command(char*);
@@ -21,6 +26,7 @@ node_t* addLabelNode(node_t*, char*, size_t, label_type);
 
 bool isValidLabelFormat(char*);
 
+arg_type getJumpParamType(char* , int);
 int getJumpParamsLength(char*);
 arg_type get_arg_type(char*, arg_type);
 int find_register(char*);

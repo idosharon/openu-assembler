@@ -39,26 +39,67 @@ bool isValidLabelFormat(char* label_name) {
     return true;
 }
 
-int getJumpParamsLength(char* params_str) {
-    int length = 0;
+
+arg_type getJumpParamType(char* params_str, int param_number) {
     params_str = strdup(params_str);
 
     if(!params_str) return -1;
-
-    arg_type first_param_type = None;
-    arg_type second_param_type = None;
+    arg_type param_type = None;
 
     /* check label */
     params_str = strtok(params_str, JMP_OPEN_BRACKET);
     if(!params_str || !isValidLabelFormat(params_str)) return -1;
-    length++;
 
     /* check first param */
+    if (param_number == 1) {
+        params_str = strtok(NULL, COMMA_SEP);
+        if (!params_str || (param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None)
+            return -1;
+    }
+        /* check second param */
+    else if (param_number == 2) {
+        params_str = strtok(NULL, COMMA_SEP);
+        params_str = strtok(NULL, JMP_CLOSE_BRACKET);
+        if (!params_str || (param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None)
+            return -1;
+    }
+
+    return param_type;
+}
+
+
+int getJumpParamsLength(char* params_str) {
+
+    int length = 0;
+    arg_type first_param_type = None;
+    arg_type second_param_type = None;
+
+    first_param_type = getJumpParamType(params_str, 1);
+    second_param_type = getJumpParamType(params_str, 2);
+    if (first_param_type == -1 || second_param_type == -1)
+        return -1;
+    length += 3;
+    if (first_param_type == Register && second_param_type == Register)
+        length--;
+
+    return length;
+}
+/*
+    params_str = strdup(params_str);
+
+    if(!params_str) return -1;
+
+
+
+
+    params_str = strtok(params_str, JMP_OPEN_BRACKET);
+    if(!params_str || !isValidLabelFormat(params_str)) return -1;
+    length++;
+
     params_str = strtok(NULL, COMMA_SEP);
     if(!params_str || (first_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
     length++;
 
-    /* check second param */
     params_str = strtok(NULL, JMP_CLOSE_BRACKET);
     if(!params_str || (second_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
     length++;
@@ -67,6 +108,7 @@ int getJumpParamsLength(char* params_str) {
 
     return length;
 }
+*/
 
 arg_type get_arg_type(char* token, arg_type types) {
     if(find_command(token) != -1) {

@@ -2,12 +2,9 @@
 #define FIRSTRUN_HEADER
 
 #include "Includes.h"
+#include "SecondRun.h"
 #include "Types.h"
 #include <ctype.h>
-
-#define IS_DATA_SYMBOL(token) (isStrEqual(token, DATA_SYMBOL) || isStrEqual(token, STRING_SYMBOL))
-#define IS_EXTERN_SYMBOL(token) (isStrEqual(token, EXTERN_SYMBOL))
-#define IS_ENTRY_SYMBOL(token) (isStrEqual(token, ENTRY_SYMBOL))
 
 int firstRun(FILE*, char*);
 

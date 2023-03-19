@@ -38,7 +38,7 @@ int firstRun(FILE* file, char* base_file_name) {
             if (isValidLabel(token)) {
                 label_flag = true;
                 current_label = token;
-                current_label[strlen(current_label)-1] = '\0';
+                current_label[strlen(current_label)-1] = NULL_TERMINATOR;
                 token = strtok(NULL, SPACE_SEP);
 
                 /* check if label exists in future labels */
@@ -77,6 +77,16 @@ int firstRun(FILE* file, char* base_file_name) {
             }
             else if (isStrEqual(token, STRING_SYMBOL)) {
                 token = strtok(NULL,SPACE_SEP);
+                if (token == NULL) {
+                    line_error(STRING_MISSING_ARGUMENT, base_file_name,line_number);
+                    error_flag = true;
+                    continue;
+                }
+                if (token[0] != STRING_QUOTE || token[strlen(token)-1] != STRING_QUOTE) {
+                    line_error(STRING_SYNTAX_ERROR, base_file_name,line_number);
+                    error_flag = true;
+                    continue;
+                }
                 DC += strlen(token)-1;
             }
         }
@@ -122,6 +132,7 @@ int firstRun(FILE* file, char* base_file_name) {
                 /* if no token found raise error */
                 if (token == NULL) {
                     line_error(ENTRY_MISSING_ARGUMENT,base_file_name,line_number);
+                    error_flag = true;
                     continue;
                 }
                 /* if more than one found raise error */
@@ -133,6 +144,7 @@ int firstRun(FILE* file, char* base_file_name) {
                 /* if label is not valid raise error */
                 if (!isValidLabel(token)) {
                     line_error(LABEL_SYNTAX_ERROR,base_file_name,line_number);
+                    error_flag = true;
                     continue;
                 }
 
@@ -171,10 +183,14 @@ int firstRun(FILE* file, char* base_file_name) {
                     if(token) {
                         if((source_type = get_arg_type(token, Immediate | Direct | Register)) == None) {
                             line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                            error_flag = true;
                             continue;
                         }
-                        if(!(source_type & command.arg1))
+                        if(!(source_type & command.arg1)) {
                             line_error(INVALID_ARG_TYPE, base_file_name, line_number);
+                            error_flag = true;
+                            continue;
+                        }
 
                         command_length++;
 
@@ -187,15 +203,16 @@ int firstRun(FILE* file, char* base_file_name) {
                 /* if expecting 2 args, check if there is a second arg */
                 if(command.arg2) {
                     token = strtok(NULL, is_jump ? LINE_BREAK : COMMA_SEP);
-                    /* ok I have jump command - check for valid syntax */
                     if(token) {
                         /* ok lets check for Jump type */
                         if ((dest_type = get_arg_type(token, Immediate | Jump | Direct | Register)) == None) {
                             line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                            error_flag = true;
                             continue;
                         }
                         if (!(dest_type & command.arg2)) {
                             line_error(INVALID_ARG_TYPE, base_file_name, line_number);
+                            error_flag = true;
                             continue;
                         }
 
@@ -239,10 +256,9 @@ int firstRun(FILE* file, char* base_file_name) {
     printf("IC: %d DC: %d\n", IC, DC);
 
     /* start second run */
-    /*
     rewind(file);
     return second_run(IC, DC, label_list, extern_list, entry_list, error_flag, file ,base_file_name);
-    */
+
     return error_flag;
 }
 

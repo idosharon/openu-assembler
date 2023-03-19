@@ -5,7 +5,8 @@
 #include "Types.h"
 
 
-void second_run(FILE*, char*);
+int second_run(int, int, node_t*, node_t*, node_t*, bool, FILE*, char*);
+
 
 
 #endif

@@ -22,6 +22,10 @@ const char* ERRORS[] = {
         "Undefined label",
         "Multiple extern request for label",
         "Multiple entry calls for label",
+        "Conflict local and external label",
+        "String missing argument",
+        "String syntax error",
+
 };
 
 const char* WARNINGS[] = {

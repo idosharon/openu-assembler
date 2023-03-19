@@ -6,6 +6,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <math.h>
+
 
 #include "Errors.h"
 #include "Utils.h"
