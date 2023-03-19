@@ -173,7 +173,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     token = strtok(NULL, COMMA_SEP);
                     if(token) {
                         if((source_type = get_arg_type(token, Immediate | Direct | Register)) == None) {
-                            line_error(PRESERVED_KEYWORD, base_file_name, line_number);
+                            line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
                             continue;
                         }
                         if(!(source_type & command.arg1))
@@ -202,7 +202,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     if(token) {
                         /* ok lets check for Jump type */
                         if ((dest_type = get_arg_type(token, Immediate | Jump | Direct | Register)) == None) {
-                            line_error(PRESERVED_KEYWORD, base_file_name, line_number);
+                            line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
                             continue;
                         }
                         if (!(dest_type & command.arg2)) {

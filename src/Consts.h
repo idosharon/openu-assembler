@@ -26,7 +26,11 @@
 #define LINE_BREAK "\n"
 #define SPACE_SEP " \t\r"LINE_BREAK
 #define COMMA_SEP ","SPACE_SEP
-#define JMP_PARAMS_SEP "()"COMMA_SEP
+
+#define JMP_OPEN_BRACKET "("SPACE_SEP
+#define JMP_CLOSE_BRACKET ")"SPACE_SEP
+
+
 #define NUMBER_SYMBOL '#'
 
 /* Labels */

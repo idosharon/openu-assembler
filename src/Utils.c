@@ -75,17 +75,17 @@ int getJumpParamsLength(char* params_str) {
     arg_type second_param_type = None;
 
     /* check label */
-    params_str = strtok(params_str, JMP_PARAMS_SEP);
+    params_str = strtok(params_str, JMP_OPEN_BRACKET);
     if(!params_str || !isValidLabelFormat(params_str)) return -1;
     length++;
 
     /* check first param */
-    params_str = strtok(NULL, JMP_PARAMS_SEP);
+    params_str = strtok(NULL, COMMA_SEP);
     if(!params_str || (first_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
     length++;
 
     /* check second param */
-    params_str = strtok(NULL, JMP_PARAMS_SEP);
+    params_str = strtok(NULL, JMP_CLOSE_BRACKET);
     if(!params_str || (second_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
     length++;
 
