@@ -253,18 +253,15 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
         }
     }
 
-
-
     /* print all command image and data image */
     printf("IC: %d DC: %d\n", IC, DC);
     int i;
     for (i = 0; i < DC; ++i)
         printf("DC: %d data: %d\n", i, memory_image[i].data.data);
 
-
-
     /* if all good  create entry and external files from lists */
     if(!error_flag) {
+        printf("No errors found, creating output files: %s\n", base_file_name);
         if (entry_list != NULL) {
             /* create_entry_file(entry_list, base_file_name); */
         }
