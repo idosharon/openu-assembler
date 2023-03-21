@@ -1,12 +1,13 @@
 MAIN:   mov r3, L1
 LOOP:   jmp L1(#-1,r6)
+.entry L1
         prn #-5
         .extern W
         sub r1, r4
-        bne END
+        bne W(r4, r5)
         bne LOOP(r4, r3)
         sub r1, r4
-        bne END
+        bne W(r4, r5)
 L1:     inc K
         bne LOOP(K, STR)
 END:    stop

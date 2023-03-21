@@ -41,27 +41,30 @@ bool isValidLabelFormat(char* label_name) {
 
 
 arg_type getJumpParamType(char* params_str, int param_number) {
+    arg_type param_type = None;
+
     params_str = strdup(params_str);
 
-    if(!params_str) return -1;
-    arg_type param_type = None;
+    if(!params_str) return None;
 
     /* check label */
     params_str = strtok(params_str, JMP_OPEN_BRACKET);
-    if(!params_str || !isValidLabelFormat(params_str)) return -1;
+    if(!params_str || !isValidLabelFormat(params_str)) return None;
 
     /* check first param */
     if (param_number == 1) {
         params_str = strtok(NULL, COMMA_SEP);
-        if (!params_str || (param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None)
-            return -1;
+        if (!params_str
+                || (param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None)
+            return None;
     }
         /* check second param */
     else if (param_number == 2) {
         params_str = strtok(NULL, COMMA_SEP);
         params_str = strtok(NULL, JMP_CLOSE_BRACKET);
-        if (!params_str || (param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None)
-            return -1;
+        if (!params_str
+                || (param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None)
+            return None;
     }
 
     return param_type;
@@ -71,12 +74,11 @@ arg_type getJumpParamType(char* params_str, int param_number) {
 int getJumpParamsLength(char* params_str) {
 
     int length = 0;
-    arg_type first_param_type = None;
-    arg_type second_param_type = None;
+    arg_type first_param_type;
+    arg_type second_param_type;
 
-    first_param_type = getJumpParamType(params_str, 1);
-    second_param_type = getJumpParamType(params_str, 2);
-    if (first_param_type == -1 || second_param_type == -1)
+    if ((first_param_type = getJumpParamType(params_str, 1)) == None
+            || (second_param_type = getJumpParamType(params_str, 2)) == None)
         return -1;
     length += 3;
     if (first_param_type == Register && second_param_type == Register)
@@ -268,6 +270,13 @@ FILE* openFile(char* file_name, char* mode) {
     }
 
     return fp;
+}
+
+void writeBinToFile(size_t current_word, size_t num_of_bits, FILE* fp) {
+    int j = 0;
+    for (j = 0; j < num_of_bits; ++j) {
+        fputc(getBitRepresentation((current_word >> (num_of_bits - 1 - j)) & 1),fp);
+    }
 }
 
 

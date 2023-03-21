@@ -24,11 +24,11 @@ int runAssembler(char* base_file_name) {
     current_file_name = getFileName(base_file_name, ASM_FILE_EXTENSION);
 
     /* open the asm current_file */
-    if ((current_file = openFile(current_file_name, "r"))) {
+    if ((current_file = openFile(current_file_name, FILE_READ_MODE))) {
         info_file("Successfully Loaded", current_file_name);
 
         if((current_file_name = preAssemble(current_file, base_file_name))) {
-            if((current_file = openFile(current_file_name, "r"))) {
+            if((current_file = openFile(current_file_name, FILE_READ_MODE))) {
                 info_file("Successfully Loaded", current_file_name);
                 firstRun(current_file, base_file_name);
             }

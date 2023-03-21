@@ -240,7 +240,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     command_length--;
                 }
                 IC += command_length;
-                printf("\t%d command: %s length: %d\n", line_number, command.name, command_length);
+                printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length);
             } else {
                 line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
                 continue;

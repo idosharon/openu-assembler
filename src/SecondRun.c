@@ -1,7 +1,13 @@
 #include "SecondRun.h"
 
 
-int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* entry_list, bool error_flag, FILE* file,char* base_file_name) {
+int second_run(int IC, int DC,
+               node_t* label_list,
+               node_t* extern_list,
+               node_t* entry_list,
+               bool error_flag,
+               FILE* file,
+               char* base_file_name) {
 
     word* code_image = (word*)malloc((IC-START_ADD) * sizeof(word));
     word* memory_image = (word*)malloc((DC-IC) * sizeof(word));
@@ -20,6 +26,8 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
     label_t* current_extern = NULL;
 
     bool label_flag = false;
+
+    int data, i = 0;
 
     binary_command binaryCommand = {0,0,0,0,0,0};
     binary_data binaryData = {0};
@@ -72,7 +80,7 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
 
             /* check for .data symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
-                /* calculate data length */
+                /* encode all data */
                 while((token = strtok(NULL, COMMA_SEP)) != NULL) {
                     if (is_number(token)) {
                         /* TODO: calculate if number if out of range */
@@ -168,6 +176,14 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
                 /* encoding type always absolute */
                 binaryCommand.encoding_type = Absolute;
 
+                /* set params type to default None */
+                binaryCommand.first_par_type = None;
+                binaryCommand.second_par_type = None;
+
+                /* set args type to default None */
+                binaryCommand.dest_type = None;
+                binaryCommand.src_type = None;
+
                 /* if expecting first arg */
                 if(command.arg1) {
                     token = strtok(NULL, COMMA_SEP);
@@ -182,7 +198,7 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
                             continue;
                         }
                         /* if arg type is valid, encode it */
-                        binaryCommand.src_type = log2(source_type);
+                        binaryCommand.src_type = encodeArgumentType(source_type);
 
                         command_length++;
                     } else {
@@ -208,28 +224,26 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
 
                         binaryCommand.opcode = command_index;
 
-                        /* TODO: Depth analysis of token to get exact length */
-                        binaryCommand.dest_type = log2(dest_type);
+
+                        binaryCommand.dest_type = encodeArgumentType(dest_type);
 
                         if(dest_type == Jump) {
                             /* get jump params and check the length of overall command */
-                            int first_param_type, second_param_type;
-                            first_param_type = getJumpParamType(token, 1);
-                            second_param_type = getJumpParamType(token, 2);
-                            if (first_param_type == -1 || second_param_type == -1) {
+                            arg_type first_param_type, second_param_type;
+
+                            /* first param is second arg in command etc. */
+                            if ((second_param_type = getJumpParamType(token, 1)) == None
+                                    || (first_param_type = getJumpParamType(token, 2)) == None) {
                                 error_flag = true;
                                 continue;
                             }
-                            binaryCommand.first_par_type = log2(first_param_type);
-                            binaryCommand.second_par_type = log2(second_param_type);
-                            command_length += 2;
-                            if (first_param_type == Register && second_param_type == Register)
-                                command_length--;
 
+                            binaryCommand.second_par_type = encodeArgumentType(second_param_type);
+                            binaryCommand.first_par_type = encodeArgumentType(first_param_type);
+
+                            command_length += getJumpParamsLength(token);
                         } else {
                             command_length++;
-                            binaryCommand.first_par_type = None;
-                            binaryCommand.second_par_type = None;
                         }
                     } else {
                         /* if expecting 2 args and not found raise error */
@@ -238,14 +252,18 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
                     }
                 }
 
-                if((token = strtok(NULL, SPACE_SEP)) != NULL) {
+                if(strtok(NULL, SPACE_SEP) != NULL) {
                     error_flag = true;
                     continue;
                 }
+
+                /* encode command into code image */
                 code_image[IC].command = binaryCommand;
-                /*code_image[++IC].param = 0;*/
+
+                /* code_image[++IC].param = 0; */
                 IC += command_length;
-                printf("\t%d command: %s length: %d\n", line_number, command.name, command_length);
+
+                printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length);
             } else {
                 line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
                 continue;
@@ -255,9 +273,16 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
 
     /* print all command image and data image */
     printf("IC: %d DC: %d\n", IC, DC);
-    int i;
-    for (i = 0; i < DC; ++i)
-        printf("DC: %d data: %d\n", i, memory_image[i].data.data);
+    for (i = 0; i < DC; ++i) {
+        /* print command in binary 1 and 0 */
+        data = memory_image[i].data.data;
+        printf("DC: %d data: %d - ", i, data);
+        /* print data in binary 1 and 0 */
+        for (int j = 0; j < WORD_SIZE; ++j) {
+            printf("%c", getBitRepresentation((data >> (WORD_SIZE-1 - j)) & 1));
+        }
+        printf("\n");
+    }
 
     /* if all good  create entry and external files from lists */
     if(!error_flag) {
@@ -268,8 +293,55 @@ int second_run(int IC, int DC, node_t* label_list, node_t* extern_list, node_t* 
         if (extern_list != NULL) {
             /* create_extern_file(extern_list, base_file_name); */
         }
+        createObjFile(IC, code_image, DC, memory_image, base_file_name);
     }
     return error_flag;
 }
 
+void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* base_file_name) {
+    char* obj_file_name;
+    FILE* output_obj_file;
+    int i = 0, j = 0;
+    size_t current_word;
+
+    if(!base_file_name) return;
+
+    if(!(obj_file_name = getFileName(base_file_name, OBJ_FILE_EXTENSION))) {
+        return;
+    }
+
+    output_obj_file = fopen(obj_file_name, FILE_WRITE_MODE);
+
+    fprintf(output_obj_file, "object file for: %s%s\n", base_file_name, ASM_FILE_EXTENSION);
+    fprintf(output_obj_file, "Base 10 address\tBase 2 code\n");
+    fprintf(output_obj_file, "\t%d\t%d\n", IC, DC);
+
+    fprintf(output_obj_file, "code image: \n");
+
+    /* write code image */
+    /* TODO: move to function */
+    for (; i < IC; ++i) {
+        current_word = code_image[i].data.data;
+        fprintf(output_obj_file, "%04d\t", i + START_ADD);
+        /* print data in binary 1 and 0 */
+        writeBinToFile(current_word, WORD_SIZE, output_obj_file);
+        fputc('\n', output_obj_file);
+    }
+
+    fprintf(output_obj_file, "memory image: \n");
+
+    /* write memory image */
+    for (i = 0; i < DC; ++i) {
+        current_word = memory_image[i].data.data;
+        fprintf(output_obj_file, "%04d\t", i + START_ADD + IC);
+        /* print data in binary 1 and 0 */
+        writeBinToFile(current_word, WORD_SIZE, output_obj_file);
+        fputc('\n', output_obj_file);
+    }
+
+
+
+
+
+}
 

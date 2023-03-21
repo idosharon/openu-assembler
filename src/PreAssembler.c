@@ -18,7 +18,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
     bool macro_flag = false;
 
     /* add pre assembler file extension & start writing to file */
-    if(!(pre_assembled_file = openFile(output_file_name, "w"))) return NULL;
+    if(!(pre_assembled_file = openFile(output_file_name, FILE_WRITE_MODE))) return NULL;
 
     /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
@@ -43,7 +43,8 @@ char* preAssemble(FILE* file, char* base_file_name) {
             } else {
                 /* add line to macro */
                 (current_macro->lines_count)++;
-                current_macro->data = (char*) realloc(current_macro->data, current_macro->lines_count*MAX_LINE_SIZE);
+                current_macro->data = (char*) realloc(current_macro->data,
+                                                      current_macro->lines_count * MAX_LINE_SIZE);
                 strcat(current_macro->data, line);
             }
         } else {

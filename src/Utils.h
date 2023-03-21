@@ -10,6 +10,10 @@
 #define info(msg) printf("[info]: %s\n", msg)
 #define info_file(msg, file_name) printf("[info]: %s: %s\n", msg, file_name)
 
+#define encodeArgumentType(arg_type) (log2(arg_type))
+
+#define getBitRepresentation(bit) ((bit) ? ONE_BIT_REPR : ZERO_BIT_REPR)
+
 #define IS_DATA_SYMBOL(token) (isStrEqual(token, DATA_SYMBOL) || isStrEqual(token, STRING_SYMBOL))
 #define IS_EXTERN_SYMBOL(token) (isStrEqual(token, EXTERN_SYMBOL))
 #define IS_ENTRY_SYMBOL(token) (isStrEqual(token, ENTRY_SYMBOL))
@@ -33,6 +37,8 @@ int find_register(char*);
 
 char* getFileName(char*, char*);
 FILE* openFile(char*, char*);
+
+void writeBinToFile(size_t, size_t, FILE*);
 
 void free_list(node_t*);
 

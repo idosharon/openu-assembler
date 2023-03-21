@@ -8,6 +8,8 @@
 
 /* File reading consts */
 #define MAX_LINE_SIZE 80
+#define FILE_READ_MODE "r"
+#define FILE_WRITE_MODE "w"
 
 /* Memory units size */
 #define BYTE_SIZE 7
@@ -31,6 +33,9 @@
 
 #define JMP_OPEN_BRACKET "("SPACE_SEP
 #define JMP_CLOSE_BRACKET ")"SPACE_SEP
+
+#define ONE_BIT_REPR '1'
+#define ZERO_BIT_REPR '0'
 
 
 #define NUMBER_SYMBOL '#'
