@@ -4,3 +4,4 @@
 CMakeLists.txt
 Makefile
 .DS_Store
+bin/*
