@@ -376,7 +376,6 @@ int second_run(int IC, int DC,
 }
 
 void createEntryFile(node_t* entry_show_list, char* base_file_name) {
-
     char* entry_file_name;
     FILE* output_entry_file;
     label_t* current_entry;
@@ -393,15 +392,14 @@ void createEntryFile(node_t* entry_show_list, char* base_file_name) {
 
     while(entry_show_list) {
         current_entry = entry_show_list->data;
-        fprintf(output_entry_file, "%s\t%llu\n",current_entry->name , current_entry->place);
-        entry_show_list = entry_show_list->next;
+        fprintf(output_entry_file, "%s\t%lu\n",current_entry->name , current_entry->place);
+        entry_show_list = (node_t *) entry_show_list->next;
     }
 
     fclose(output_entry_file);
 }
 
 void createExternFile(node_t* extern_show_list, char* base_file_name) {
-
     char* extern_file_name;
     FILE* output_extern_file;
     label_t* current_extern;
@@ -418,8 +416,8 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
 
     while(extern_show_list) {
         current_extern = extern_show_list->data;
-        fprintf(output_extern_file, "%s\t%llu\n",current_extern->name , current_extern->place);
-        extern_show_list = extern_show_list->next;
+        fprintf(output_extern_file, "%s\t%lu\n",current_extern->name , current_extern->place);
+        extern_show_list = (node_t *) extern_show_list->next;
     }
 
     fclose(output_extern_file);
