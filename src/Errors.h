@@ -38,7 +38,9 @@ extern const char* ERRORS[];
 /* warning messages */
 typedef enum {
     FILE_NOT_SPECIFIED,
-    MACRO_SYNTAX_WARNING
+    MACRO_SYNTAX_WARNING,
+    LABEL_DEF_BEFORE_EXTERN,
+    LABEL_DEF_BEFORE_ENTRY
 } WARNINGS_INDEX;
 
 extern const char* WARNINGS[];

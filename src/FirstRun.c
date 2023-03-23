@@ -123,6 +123,10 @@ int firstRun(FILE* file, char* base_file_name) {
                     continue;
                 }
                 /* add to external list */
+
+                if (label_flag) {
+                    line_warning(LABEL_DEF_BEFORE_EXTERN, base_file_name, line_number);
+                }
                 extern_list = addLabelNode(extern_list, token, 0, Extern);
             } else {
 
@@ -155,6 +159,9 @@ int firstRun(FILE* file, char* base_file_name) {
                     continue;
                 }
 
+                if (label_flag) {
+                    line_warning(LABEL_DEF_BEFORE_ENTRY, base_file_name, line_number);
+                }
                 /* add to entry list */
                 entry_list = addLabelNode(entry_list, token, 0, Entry);
             }

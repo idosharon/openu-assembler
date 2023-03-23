@@ -30,5 +30,7 @@ const char* ERRORS[] = {
 
 const char* WARNINGS[] = {
         "No file was specified",
-        "Macro syntax warning"
+        "Macro syntax warning",
+        "Label definition before extern",
+        "Label definition before entry"
 };
