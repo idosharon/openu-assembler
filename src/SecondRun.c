@@ -64,20 +64,18 @@ int second_run(int IC, int DC,
                 label_flag = true;
                 token = strtok(NULL, SPACE_SEP);
             } else {
-                error_flag = true;
                 continue;
             }
         }
         /* check all symbol types */
         if (IS_DATA_SYMBOL(token)) {
 
+            /* if label is type .entry, add to entry show list */
             if (label_flag) {
-                if (current_label->type == Entry) {
-                    entry_show_list = addLabelNode(entry_show_list, current_label->name, DC, Data);
-                }
+                if (findLabel(current_label_name, entry_list, NULL) != NULL)
+                    entry_show_list = addLabelNode(entry_show_list, current_label_name, DC, Data);
                 label_flag = false;
             }
-
             /* check for .data symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
                 /* encode all data */
@@ -123,6 +121,13 @@ int second_run(int IC, int DC,
         else {
             /* get current command index */
             if ((command_index = find_command(token)) != -1) {
+
+                /* if label is type .entry, add to entry show list */
+                if (label_flag) {
+                    if (findLabel(current_label_name, entry_list, NULL) != NULL)
+                        entry_show_list = addLabelNode(entry_show_list, current_label_name, IC, Code);
+                    label_flag = false;
+                }
 
                 /* check command type (group) */
                 int command_length = 1;
@@ -209,7 +214,6 @@ int second_run(int IC, int DC,
 
                         binaryCommand.opcode = command_index;
 
-
                         binaryCommand.dest_type = encodeArgumentType(dest_type);
 
                         if(dest_type == Jump) {
@@ -228,7 +232,10 @@ int second_run(int IC, int DC,
 
                             command_length += getJumpParamsLength(token);
                         } else {
-                            command_length++;
+                            /* if both arguments are registers, don't count the second one in length */
+                            if (!(source_type == Register && dest_type == Register)) {
+                                command_length++;
+                            }
                         }
                     } else {
                         /* if expecting 2 args and not found raise error */
@@ -263,7 +270,8 @@ int second_run(int IC, int DC,
         data = memory_image[i].data.data;
         printf("DC: %d data: %d - ", i, data);
         /* print data in binary 1 and 0 */
-        for (int j = 0; j < WORD_SIZE; ++j) {
+        int j;
+        for (j = 0; j < WORD_SIZE; ++j) {
             printf("%c", getBitRepresentation((data >> (WORD_SIZE-1 - j)) & 1));
         }
         printf("\n");
@@ -272,15 +280,73 @@ int second_run(int IC, int DC,
     /* if all good  create entry and external files from lists */
     if(!error_flag) {
         printf("No errors found, creating output files: %s\n", base_file_name);
-        if (entry_list != NULL) {
-            /* create_entry_file(entry_list, base_file_name); */
-        }
-        if (extern_list != NULL) {
-            /* create_extern_file(extern_list, base_file_name); */
-        }
+
         createObjFile(IC, code_image, DC, memory_image, base_file_name);
+
+        /* add the IC address and START ADDRESS to all entry and extern labels */
+        IC += START_ADD;
+        updateIC(START_ADD, entry_show_list, extern_show_list);
+        updateDC(IC, entry_show_list, extern_show_list);
+
+        if (entry_show_list != NULL) {
+            createEntryFile(entry_show_list, base_file_name);
+        }
+        if (extern_show_list != NULL) {
+            createExternFile(extern_show_list, base_file_name);
+        }
+
     }
     return error_flag;
+}
+
+void createEntryFile(node_t* entry_show_list, char* base_file_name) {
+
+    char* entry_file_name;
+    FILE* output_entry_file;
+    label_t* current_entry;
+
+    if(!base_file_name) return;
+
+    if (!entry_show_list) return;
+
+    if(!(entry_file_name = getFileName(base_file_name, ENT_FILE_EXTENSION))) {
+        return;
+    }
+
+    output_entry_file = fopen(entry_file_name, FILE_WRITE_MODE);
+
+    while(entry_show_list) {
+        current_entry = entry_show_list->data;
+        fprintf(output_entry_file, "%s\t%llu\n",current_entry->name , current_entry->place);
+        entry_show_list = entry_show_list->next;
+    }
+
+    fclose(output_entry_file);
+}
+
+void createExternFile(node_t* extern_show_list, char* base_file_name) {
+
+    char* extern_file_name;
+    FILE* output_extern_file;
+    label_t* current_extern;
+
+    if(!base_file_name) return;
+
+    if (!extern_show_list) return;
+
+    if(!(extern_file_name = getFileName(base_file_name, EXT_FILE_EXTENSION))) {
+        return;
+    }
+
+    output_extern_file = fopen(extern_file_name, FILE_WRITE_MODE);
+
+    while(extern_show_list) {
+        current_extern = extern_show_list->data;
+        fprintf(output_extern_file, "%s\t%llu\n",current_extern->name , current_extern->place);
+        extern_show_list = extern_show_list->next;
+    }
+
+    fclose(output_extern_file);
 }
 
 void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* base_file_name) {

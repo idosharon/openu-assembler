@@ -231,6 +231,51 @@ char* getOpcode(int index) {
     }
 }
 
+/* update the DC address of all data labels */
+void updateDC(int IC, node_t* label_list, ...) {
+    label_t* label;
+    va_list lists;
+    va_start(lists, label_list);
+    while(label_list != NULL) {
+        updateDCInList(IC, label_list);
+        label_list = va_arg(lists, node_t*);
+    }
+}
+
+void updateDCInList(int IC, node_t* head) {
+    label_t* label;
+    while(head != NULL) {
+        label = (label_t*) head->data;
+        if(label->type == Data) {
+            label->place += IC;
+        }
+        head = (node_t*) head->next;
+    }
+}
+
+/* update the IC address of all data labels */
+void updateIC(int IC, node_t* label_list, ...) {
+    label_t* label;
+    va_list lists;
+    va_start(lists, label_list);
+    while(label_list != NULL) {
+        updateICInList(IC, label_list);
+        label_list = va_arg(lists, node_t*);
+    }
+}
+
+void updateICInList(int start_add, node_t* head) {
+    label_t* label;
+    while(head != NULL) {
+        label = (label_t*) head->data;
+        if(label->type == Code) {
+            label->place += start_add;
+        }
+        head = (node_t*) head->next;
+    }
+}
+
+
 void free_list(node_t* head) {
     /* free list */
     node_t* current = head;

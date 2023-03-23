@@ -5,6 +5,8 @@
 #define ASM_FILE_EXTENSION ".as"
 #define PRE_ASSEMBLER_FILE_EXTENSION ".am"
 #define OBJ_FILE_EXTENSION ".o"
+#define ENT_FILE_EXTENSION ".ent"
+#define EXT_FILE_EXTENSION ".ext"
 
 /* File reading consts */
 #define MAX_LINE_SIZE 80

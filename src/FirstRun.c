@@ -269,27 +269,6 @@ int firstRun(FILE* file, char* base_file_name) {
     return error_flag;
 }
 
-void updateDC(int IC, node_t* label_list, ...) {
-    label_t* label;
-    va_list lists;
-    va_start(lists, label_list);
-    while(label_list != NULL) {
-        updateDCInList(IC, label_list);
-        label_list = va_arg(lists, node_t*);
-    }
-}
-
-void updateDCInList(int IC, node_t* head) {
-    label_t* label;
-    while(head != NULL) {
-        label = (label_t*) head->data;
-        if(label->type == Data) {
-            label->place += IC;
-        }
-        head = (node_t*) head->next;
-    }
-}
-
 bool deleteLabel(char* name, node_t** head) {
     node_t* current = *head;
     node_t* prev = NULL;

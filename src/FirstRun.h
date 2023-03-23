@@ -8,9 +8,6 @@
 
 int firstRun(FILE*, char*);
 
-void updateDCInList(int IC, node_t *head);
-void updateDC(int, node_t*, ...);
-
 char* getBinaryCommand(char*, char*, int);
 
 bool deleteLabel(char*, node_t**);

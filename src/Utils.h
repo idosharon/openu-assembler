@@ -28,6 +28,12 @@ label_t* findLabelInList(char *name, node_t *head);
 label_t* findLabel(char*, node_t*, ...);
 node_t* addLabelNode(node_t*, char*, size_t, label_type);
 
+void updateDCInList(int, node_t*);
+void updateDC(int, node_t*, ...);
+
+void updateICInList(int, node_t*);
+void updateIC(int, node_t*, ...);
+
 bool isValidLabelFormat(char*);
 
 arg_type getJumpParamType(char* , int);
