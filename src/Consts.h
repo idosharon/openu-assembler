@@ -31,6 +31,8 @@
 #define STRING_QUOTE '"'
 #define NULL_TERMINATOR '\0'
 
+#define IMMEDIATE_PREFIX '#'
+
 #define JMP_OPEN_BRACKET "("SPACE_SEP
 #define JMP_CLOSE_BRACKET ")"SPACE_SEP
 

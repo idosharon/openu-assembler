@@ -118,50 +118,9 @@ int second_run(int IC, int DC,
             }
         }
         else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
-            /* case: extern symbol */
-            if(IS_EXTERN_SYMBOL(token)) {
-                /* get external label */
-                token = strtok(NULL,SPACE_SEP);
-
-                /* if not found raise error */
-                if (token == NULL) {
-                    error_flag = true;
-                    continue;
-                }
-                /* if more than one found raise error */
-                if(strtok(NULL,SPACE_SEP) != NULL) {
-                    error_flag = true;
-                    continue;
-                }
-                /* if the label is not valid raise error */
-                if (!isValidLabel(token)) {
-                    error_flag = true;
-                    continue;
-                }
-            } else {
-
-                /* get entry label */
-                token = strtok(NULL,SPACE_SEP);
-
-                /* if no token found raise error */
-                if (token == NULL) {
-                    error_flag = true;
-                    continue;
-                }
-                /* if more than one found raise error */
-                if(strtok(NULL,SPACE_SEP) != NULL) {
-                    error_flag = true;
-                    continue;
-                }
-                /* if label is not valid raise error */
-                if (!isValidLabel(token)) {
-                    error_flag = true;
-                    continue;
-                }
-            }
+            continue;
         }
         else {
-
             /* get current command index */
             if ((command_index = find_command(token)) != -1) {
 
@@ -197,10 +156,36 @@ int second_run(int IC, int DC,
                             error_flag = true;
                             continue;
                         }
-                        /* if arg type is valid, encode it */
+//                        /* if arg type is valid, encode it */
                         binaryCommand.src_type = encodeArgumentType(source_type);
-
                         command_length++;
+
+                        switch (source_type) {
+                            case Immediate:
+                                if(*token != IMMEDIATE_PREFIX) {
+                                    error_flag = true;
+                                } else {
+                                    token++;
+                                    if (is_number(token)) {
+                                        /* TODO: check for negative number */
+                                        binaryFirstParam.data = atoi(token);
+                                        binaryFirstParam.encoding_type = Absolute;
+                                        code_image[IC+command_length].param = binaryFirstParam;
+                                    } else {
+                                        error_flag = true;
+                                        continue;
+                                    }
+                                }
+                                break;
+                            case Direct:
+                                break;
+                            case Jump:
+                                break;
+                            case Register:
+                                break;
+                            case None:
+                                break;
+                        }
                     } else {
                         /* if expecting 1 arg and not found raise error */
                         error_flag = true;

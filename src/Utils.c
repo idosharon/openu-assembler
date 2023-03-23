@@ -120,7 +120,7 @@ arg_type get_arg_type(char* token, arg_type types) {
 
     /* r0 = Register, #(num) = Immediate, Label = Direct, Label(..., ...) = Jump */
     if((types & Immediate)
-            && (token[0] == '#' && is_number(token + 1))) {
+            && (token[0] == IMMEDIATE_PREFIX && is_number(token + 1))) {
         return Immediate;
     } else if((types & Jump) && (getJumpParamsLength(token) != -1)) {
         return Jump;
