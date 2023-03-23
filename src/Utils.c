@@ -121,6 +121,7 @@ arg_type get_arg_type(char* token, arg_type types) {
     /* r0 = Register, #(num) = Immediate, Label = Direct, Label(..., ...) = Jump */
     if((types & Immediate)
             && (token[0] == IMMEDIATE_PREFIX && is_number(token + 1))) {
+        /* TODO: check if number if in range */
         return Immediate;
     } else if((types & Jump) && (getJumpParamsLength(token) != -1)) {
         return Jump;
@@ -180,6 +181,7 @@ label_t* findLabel(char* name, node_t* label_list, ...) {
         }
         label_list = va_arg(lists, node_t*);
     }
+    va_end(lists);
     return NULL;
 }
 

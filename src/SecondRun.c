@@ -50,7 +50,7 @@ int second_run(int IC, int DC,
             if (isValidLabel(token)) {
                 current_label_name = strdup(token);
                 current_label_name[strlen(current_label_name)-1] = NULL_TERMINATOR;
-                current_label = findLabel(current_label_name, label_list, extern_list);
+                current_label = findLabel(current_label_name, label_list, extern_list, NULL);
                 if (current_label == NULL) {
                     line_error(UNDEFINED_LABEL, base_file_name, line_number);
                     error_flag = true;
@@ -117,8 +117,7 @@ int second_run(int IC, int DC,
         }
         else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
             continue;
-        }
-        else {
+        } else {
             /* get current command index */
             if ((command_index = find_command(token)) != -1) {
 
@@ -161,7 +160,7 @@ int second_run(int IC, int DC,
                             error_flag = true;
                             continue;
                         }
-//                        /* if arg type is valid, encode it */
+                        /* if arg type is valid, encode it */
                         binaryCommand.src_type = encodeArgumentType(source_type);
                         command_length++;
 
@@ -183,12 +182,28 @@ int second_run(int IC, int DC,
                                 }
                                 break;
                             case Direct:
-                                break;
-                            case Jump:
+                                current_label = findLabel(token, label_list, extern_list, NULL);
+                                if (current_label == NULL) {
+                                    line_error(UNDEFINED_LABEL, base_file_name, line_number);
+                                    error_flag = true;
+                                    continue;
+                                }
+
+                                if(current_label->type == Extern) {
+                                    binaryFirstParam.encoding_type = External;
+                                    binaryFirstParam.data = 0;
+                                    extern_show_list = addLabelNode(extern_show_list, current_label->name, IC + command_length, Code);
+                                } else {
+                                    binaryFirstParam.encoding_type = Relocatable;
+                                    binaryFirstParam.data = current_label->place;
+                                }
+
+                                code_image[IC + command_length].param = binaryFirstParam;
                                 break;
                             case Register:
-                                break;
-                            case None:
+                                binaryTwoRegisters.encoding_type = Absolute;
+                                binaryTwoRegisters.src_register = find_register(token);
+                                code_image[IC + command_length].two_registers = binaryTwoRegisters;
                                 break;
                         }
                     } else {
@@ -230,7 +245,18 @@ int second_run(int IC, int DC,
                             binaryCommand.second_par_type = encodeArgumentType(second_param_type);
                             binaryCommand.first_par_type = encodeArgumentType(first_param_type);
 
-                            command_length += getJumpParamsLength(token);
+                            if ((first_param_type = getJumpParamType(token, 1)) == None
+                                || (second_param_type = getJumpParamType(token, 2)) == None) {
+                                error_flag = true;
+                                continue;
+                            }
+
+
+                            if (first_param_type == Register && second_param_type == Register) {
+
+                            }
+
+
                         } else {
                             /* if both arguments are registers, don't count the second one in length */
                             if (!(source_type == Register && dest_type == Register)) {
