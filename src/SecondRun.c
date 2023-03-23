@@ -34,6 +34,9 @@ int second_run(int IC, int DC,
     binary_param binaryFirstParam = {0,0};
     binary_param binarySecondParam = {0,0};
     binary_two_registers binaryTwoRegisters = {0,0,0};
+    /* if there is a jump with parameters command: */
+    binary_param binaryJumpFirstParam = {0,0};
+    binary_param binaryJumpSecondParam = {0,0};
 
     DC = 0;
     IC = 0;
@@ -87,7 +90,6 @@ int second_run(int IC, int DC,
                         memory_image[DC].data = binaryData;
                         DC++;
                     } else {
-                        error_flag = true;
                         continue;
                     }
                 }
@@ -95,11 +97,9 @@ int second_run(int IC, int DC,
             else if (isStrEqual(token, STRING_SYMBOL)) {
                 token = strtok(NULL,SPACE_SEP);
                 if (token == NULL) {
-                    error_flag = true;
                     continue;
                 }
                 if (token[0] != STRING_QUOTE || token[strlen(token)-1] != STRING_QUOTE) {
-                    error_flag = true;
                     continue;
                 }
                 token[strlen(token)-1] = NULL_TERMINATOR;
@@ -147,39 +147,32 @@ int second_run(int IC, int DC,
                 binaryCommand.dest_type = None;
                 binaryCommand.src_type = None;
 
+                binaryCommand.opcode = command_index;
+
                 /* if expecting first arg */
                 if(command.arg1) {
                     token = strtok(NULL, COMMA_SEP);
                     if(token) {
                         if((source_type = get_arg_type(token, Immediate | Direct | Register)) == None) {
-                            error_flag = true;
                             continue;
                         }
                         /* if arg type is not valid raise error */
                         if(!(source_type & command.arg1)) {
-                            error_flag = true;
                             continue;
                         }
                         /* if arg type is valid, encode it */
                         binaryCommand.src_type = encodeArgumentType(source_type);
-                        command_length++;
 
                         switch (source_type) {
                             case Immediate:
-                                if(*token != IMMEDIATE_PREFIX) {
-                                    error_flag = true;
-                                } else {
-                                    token++;
-                                    if (is_number(token)) {
-                                        /* TODO: check for negative number */
-                                        binaryFirstParam.data = atoi(token);
-                                        binaryFirstParam.encoding_type = Absolute;
-                                        code_image[IC+command_length].param = binaryFirstParam;
-                                    } else {
-                                        error_flag = true;
-                                        continue;
-                                    }
-                                }
+                                token++;
+                                if (is_number(token)) {
+                                    /* TODO: check for negative number */
+                                    binaryFirstParam.data = atoi(token);
+                                    binaryFirstParam.encoding_type = Absolute;
+                                    code_image[IC+command_length].param = binaryFirstParam;
+                                } else
+                                    continue;
                                 break;
                             case Direct:
                                 current_label = findLabel(token, label_list, extern_list, NULL);
@@ -206,9 +199,9 @@ int second_run(int IC, int DC,
                                 code_image[IC + command_length].two_registers = binaryTwoRegisters;
                                 break;
                         }
+                        command_length++;
                     } else {
                         /* if expecting 1 arg and not found raise error */
-                        error_flag = true;
                         continue;
                     }
                 }
@@ -219,59 +212,116 @@ int second_run(int IC, int DC,
                     if(token) {
                         /* ok lets check for Jump type */
                         if ((dest_type = get_arg_type(token, Immediate | Jump | Direct | Register)) == None) {
-                            error_flag = true;
                             continue;
                         }
                         if (!(dest_type & command.arg2)) {
-                            error_flag = true;
                             continue;
                         }
 
-                        binaryCommand.opcode = command_index;
-
                         binaryCommand.dest_type = encodeArgumentType(dest_type);
 
-                        if(dest_type == Jump) {
-                            /* get jump params and check the length of overall command */
-                            arg_type first_param_type, second_param_type;
+                        switch (dest_type) {
+                            case Immediate:
+                                token++;
+                                if (is_number(token)) {
+                                    /* TODO: check for negative number */
+                                    binarySecondParam.data = atoi(token);
+                                    binarySecondParam.encoding_type = Absolute;
+                                    code_image[IC + command_length].param = binarySecondParam;
+                                } else
+                                    continue;
+                                break;
+                            case Direct:
+                                current_label = findLabel(token, label_list, extern_list, NULL);
+                                if (current_label == NULL) {
+                                    line_error(UNDEFINED_LABEL, base_file_name, line_number);
+                                    continue;
+                                }
 
-                            /* first param is second arg in command etc. */
-                            if ((second_param_type = getJumpParamType(token, 1)) == None
+                                if (current_label->type == Extern) {
+                                    binarySecondParam.encoding_type = External;
+                                    binarySecondParam.data = 0;
+                                    extern_show_list = addLabelNode(extern_show_list, current_label->name,
+                                                                    IC + command_length, Code);
+                                } else {
+                                    binarySecondParam.encoding_type = Relocatable;
+                                    binarySecondParam.data = current_label->place;
+                                }
+                                code_image[IC + command_length].param = binarySecondParam;
+                                break;
+                            case Register:
+                                binaryTwoRegisters.encoding_type = Absolute;
+                                binaryTwoRegisters.dest_register = find_register(token);
+                                if (source_type == Register)
+                                    command_length--;
+                                code_image[IC + command_length].two_registers = binaryTwoRegisters;
+                                break;
+                            case Jump:
+                                binarySecondParam.encoding_type = Relocatable;
+                                current_label_name = strdup(token);
+                                current_label_name = strtok(current_label_name, JMP_OPEN_BRACKET);
+
+                                /* errors that first run captures */
+                                if (current_label_name == NULL || !isValidLabel(current_label_name))
+                                    continue;
+
+                                current_label = findLabel(current_label_name, label_list, extern_list, NULL);
+
+                                /* error that second run captures - undefined label */
+                                if (current_label == NULL) {
+                                    line_error(UNDEFINED_LABEL, base_file_name, line_number);
+                                    error_flag = true;
+                                    continue;
+                                }
+                                if (current_label->type == Extern) {
+                                    binarySecondParam.encoding_type = External;
+                                    binarySecondParam.data = 0;
+                                    extern_show_list = addLabelNode(extern_show_list, current_label->name,
+                                                                    IC + command_length, Code);
+                                } else {
+                                    binarySecondParam.encoding_type = Relocatable;
+                                    binarySecondParam.data = current_label->place;
+                                }
+                                code_image[IC + command_length].param = binarySecondParam;
+
+                                /* check for jump params */
+                                arg_type first_param_type, second_param_type;
+
+                                /* first param is second arg in command etc. */
+                                if ((second_param_type = getJumpParamType(token, 1)) == None
                                     || (first_param_type = getJumpParamType(token, 2)) == None) {
-                                error_flag = true;
-                                continue;
-                            }
+                                    continue;
+                                }
 
-                            binaryCommand.second_par_type = encodeArgumentType(second_param_type);
-                            binaryCommand.first_par_type = encodeArgumentType(first_param_type);
+                                binaryCommand.second_par_type = encodeArgumentType(second_param_type);
+                                binaryCommand.first_par_type = encodeArgumentType(first_param_type);
 
-                            if ((first_param_type = getJumpParamType(token, 1)) == None
-                                || (second_param_type = getJumpParamType(token, 2)) == None) {
-                                error_flag = true;
-                                continue;
-                            }
+                                
 
+                                switch(second_param_type) {
+                                    case Immediate:
+                                        if ((token = strtok(NULL, COMMA_SEP)) == NULL) {
+                                            continue;
+                                        }
+                                        token++;
+                                        if (is_number(token)) {
 
-                            if (first_param_type == Register && second_param_type == Register) {
-
-                            }
-
-
-                        } else {
-                            /* if both arguments are registers, don't count the second one in length */
-                            if (!(source_type == Register && dest_type == Register)) {
-                                command_length++;
-                            }
+                                            command_length += 2;
+                                            if (!(first_param_type == Register && second_param_type == Register)) {
+                                                command_length++;
+                                            }
+                                            break;
+                                        }
+                                }
                         }
+
                     } else {
                         /* if expecting 2 args and not found raise error */
-                        error_flag = true;
                         continue;
                     }
                 }
 
                 if(strtok(NULL, SPACE_SEP) != NULL) {
-                    error_flag = true;
                     continue;
                 }
 

@@ -11,6 +11,7 @@ int main(int argc, char* argv[]) {
             if(runAssembler(strdup(argv[file_index])) == -1) {
                 return -1;
             }
+            printf("\n\n");
         }
     }
     return 0;

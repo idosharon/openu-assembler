@@ -1,7 +1,7 @@
-; test file 1
+;test file 1
 
-MAIN:   mov #-1, r3
-LOOP:   jmp L1(L1(#-1,r6),r6)
+MAIN: mov #-1,r3
+LOOP:   jmp L1(#-1,r6)
         mcr m1
         sub r1, r4
         bne W(r4, r5)
