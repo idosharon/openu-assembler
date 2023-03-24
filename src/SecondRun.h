@@ -14,7 +14,6 @@ void createExternFile(node_t*, char*);
 
 void encodeArgument(word*, char*, arg_type, node_t*, node_t*, node_t**);
 ERROR encodeArgumentInImage(word*, argument_t, argument_t, node_t*, node_t*);
-ERROR encodeJumpCommandToWord(word*, argument_t, node_t*, node_t*);
-
+ERROR encodeArgumentToWord(char*, word**, int, arg_type, node_t*, node_t*, node_t**, int);
 
 #endif

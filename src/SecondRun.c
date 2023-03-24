@@ -45,6 +45,9 @@ int second_run(int IC, int DC,
     /* command & data objects */
     binary_command binaryCommand = {0, 0, 0, 0, 0, 0};
     binary_data binaryData = {0};
+    binary_param* binaryFirstParam = (binary_param*)calloc(sizeof(binary_param), 1);
+    binary_param* binarySecondParam = (binary_param*)calloc(sizeof(binary_param), 1);
+
 
     /* set IC & DC to 0 */
     IC = 0;
@@ -177,19 +180,15 @@ int second_run(int IC, int DC,
                         arg1.type = source_type;
 
                         /* get encoded word of argument */
-                        if ((error_code = encodeArgumentToWord(encoded_word, arg1, arg2, label_list, extern_list))) {
+                        if ((error_code = encodeArgumentToWord(token, (word **) &binaryFirstParam, -1, source_type,
+                                                               label_list, extern_list, &extern_show_list, IC+offset))) {
                             line_error(error_code, base_file_name, line_number);
                             error_flag = true;
                         }
 
-                        /* TODO: fix this */
-                        if (encoded_word->param.encoding_type == External) {
-                            /* add to external show list */
-                            extern_show_list = addLabelNode(extern_show_list, token, IC + offset, Code);
-                        }
+                        /* encode word */
+                        code_image[IC+offset].param = *binaryFirstParam;
 
-                        /* add encoded word to code image */
-                        code_image[IC + offset] = *encoded_word;
 
                     } else {
                         /* if expecting 1 arg and not found raise error */
@@ -201,38 +200,89 @@ int second_run(int IC, int DC,
                 if (command.arg2_optional_types) {
                     /* continue to second arg */
                     offset++;
-                    token = strtok(NULL, is_jump ? LINE_BREAK : COMMA_SEP);
+                    token = strtok(NULL, is_jump ? JMP_OPEN_BRACKET COMMA_SEP : COMMA_SEP);
 
                     if (token) {
-                        /* ok lets check for Jump type */
-                        if ((dest_type = get_arg_type(token, Immediate | Direct | Register | Jump)) == None) {
+                        if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
                             continue;
                         }
-                        if (dest_type & command.arg2_optional_types) {
-                            binaryCommand.dest_type = encodeArgumentType(dest_type);
 
-                            if(dest_type == Jump) {
+                        /* if arg type is valid, encode it */
+                        binaryCommand.dest_type = encodeArgumentType(dest_type);
 
+                        /* save current token and type in argument 2 */
+                        arg2.value = strdup(token);
+                        arg2.type = dest_type;
 
+                        /* get encoded word of argument */
+                        if ((error_code = encodeArgumentToWord(token, (word **) &binarySecondParam, (source_type == Register ? find_register(arg1.value) : -1), dest_type,
+                                                               label_list, extern_list, &extern_show_list, IC+offset))) {
+                            line_error(error_code, base_file_name, line_number);
+                            error_flag = true;
+                        }
 
-                            } else {
-                                arg2.value = token;
-                                arg2.type = dest_type;
+                        /* encode word */
+                        if (source_type == Register && dest_type == Register) {
+                            offset--;
+                        }
 
-                                if(source_type == Register && dest_type == Register) {
-                                    offset--;
+                        code_image[IC+offset].param = *binarySecondParam;
+
+                        if (is_jump) {
+                            binary_param* binaryJumpFirstParam = (binary_param*)calloc(sizeof(binary_param), 1);
+                            binary_param* binaryJumpSecondParam = (binary_param*)calloc(sizeof(binary_param), 1);
+
+                            arg_type jmpFirstParmType = None, jmpSecondParmType = None;
+
+                            offset++;
+                            token = strtok(arg2.value, COMMA_SEP);
+                            if (token) {
+                                if ((jmpFirstParmType = get_arg_type(token, Immediate | Direct | Register)) == None) {
+                                    continue;
                                 }
+                                /* if arg type is valid, encode it */
+                                binaryCommand.second_par_type = encodeArgumentType(jmpFirstParmType);
 
-                                /* add encoded word to code image */
-                                if ((error_code = encodeArgumentToWord(code_image + IC + offset, arg2, arg1, label_list, extern_list))) {
+                                /* save current token and type in argument 1 */
+                                arg1.value = token;
+                                arg1.type = jmpFirstParmType;
+
+                                /* get encoded word of argument */
+                                if ((error_code = encodeArgumentToWord(token, (word **) &binaryJumpFirstParam, -1,
+                                                                       jmpFirstParmType,
+                                                                       label_list, extern_list, &extern_show_list,
+                                                                       IC + offset))) {
                                     line_error(error_code, base_file_name, line_number);
                                     error_flag = true;
                                 }
 
-                                if (code_image[IC + offset].param.encoding_type == External) {
-                                    /* add to external show list */
-                                    extern_show_list = addLabelNode(extern_show_list, token, IC + offset, Code);
+                                /* encode word */
+                                code_image[IC + offset].param = *binaryJumpFirstParam;
+                            }
+                            else {
+                                continue;
+                            }
+                            offset++;
+                            token = strtok(NULL, JMP_CLOSE_BRACKET);
+                            if (token) {
+                                if ((jmpSecondParmType = get_arg_type(token, Immediate | Direct | Register)) == None) {
+                                    continue;
                                 }
+                                /* if arg type is valid, encode it */
+                                binaryCommand.first_par_type = encodeArgumentType(jmpSecondParmType);
+
+                                /* get encoded word of argument */
+                                if ((error_code = encodeArgumentToWord(token, (word **) &binaryJumpSecondParam, -1, jmpSecondParmType,
+                                                                       label_list, extern_list, &extern_show_list, IC+offset))) {
+                                    line_error(error_code, base_file_name, line_number);
+                                    error_flag = true;
+                                }
+
+                                /* encode word */
+                                code_image[IC+offset].param = *binaryJumpSecondParam;
+                            }
+                            else {
+                                continue;
                             }
                         }
                     } else {
@@ -280,11 +330,46 @@ int second_run(int IC, int DC,
     return error_flag;
 }
 
-void encodeArgument(word* code_image, char* token, arg_type optional_types,
-                    node_t* label_list, node_t* extern_list, node_t** extern_show_list) {
+ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_type optional_types,
+                    node_t* label_list, node_t* extern_list, node_t** extern_show_list, int IC) {
     arg_type current_type;
+    label_t* current_label;
 
+    if ((current_type = get_arg_type(token, optional_types)) == None) {
+        return INVALID_ARG_TYPE;
+    }
 
+    switch (current_type) {
+        case Immediate:
+            token++;
+            (*binArg)->param.encoding_type = Absolute;
+            (*binArg)->param.data = atoi(token);
+            break;
+        case Direct:
+            (*binArg)->param.encoding_type = Relocatable;
+            if ((current_label = findLabel(token, label_list, extern_list)) == NULL) {
+                return UNDEFINED_LABEL;
+            }
+            if (current_label->type == External) {
+                (*binArg)->param.encoding_type = External;
+                *extern_show_list = addLabelNode(*extern_show_list, token, IC, Code);
+            }
+            (*binArg)->param.data = current_label->place;
+            break;
+        case Register:
+            (*binArg)->param.encoding_type = Absolute;
+            if (prev_register == -1) {
+                (*binArg)->two_registers.encoding_type = Absolute;
+                (*binArg)->two_registers.src_register = find_register(token);
+                (*binArg)->two_registers.dest_register = 0;
+            } else {
+                (*binArg)->two_registers.encoding_type = Absolute;
+                (*binArg)->two_registers.dest_register = find_register(token);
+                (*binArg)->two_registers.src_register = prev_register;
+            }
+            break;
+    }
+    return NO_ERROR;
 }
 
 ERROR encodeArgumentInImage(word* code_image, argument_t current_arg, argument_t prev_arg,
@@ -349,6 +434,10 @@ ERROR encodeJumpCommandToWord(word* code_image, argument_t jmp_arg, node_t* labe
 
     return NO_ERROR;
 }
+
+
+
+
 
 
 void createEntryFile(node_t* entry_show_list, char* base_file_name) {
