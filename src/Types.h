@@ -7,15 +7,11 @@
 /* define bool */
 typedef enum { false, true } bool;
 
-/*
 typedef struct {
-    unsigned bits: BYTE_SIZE;
-} byte;
-
-typedef struct {
-    unsigned bits: WORD_SIZE;
-} word;
-*/
+    char* base_name;
+    size_t line_number;
+    size_t skipped_lines;
+} AsmFile;
 
 /* label type */
 typedef enum {
@@ -40,6 +36,11 @@ typedef enum {
     Jump = 4,       /* 0100 = 2 */
     Register = 8    /* 1000 = 3 */
 } arg_type;
+
+typedef struct {
+    char* value;
+    arg_type type;
+} argument_t;
 
 /* node type */
 typedef struct {

@@ -9,50 +9,54 @@ int second_run(int IC, int DC,
                FILE* file,
                char* base_file_name) {
 
-    word* code_image = (word*)malloc((IC-START_ADD) * sizeof(word));
-    word* memory_image = (word*)malloc((DC-IC) * sizeof(word));
+    /* create memory images */
+    word *code_image = (word *) malloc((IC - START_ADD) * sizeof(word));
+    word *memory_image = (word *) malloc((DC - IC) * sizeof(word));
 
-    node_t* extern_show_list = NULL;
-    node_t* entry_show_list = NULL;
+    /* extern and entry show list */
+    node_t *extern_show_list = NULL;
+    node_t *entry_show_list = NULL;
 
-    char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
+    /* line buffer */
+    char *line = (char *) malloc(MAX_LINE_SIZE * sizeof(char));
     size_t line_number = 0;
     size_t command_index = 0;
-    char* token;
-    char* current_label_name = NULL;
+    char *token;
+    char *current_label_name = NULL;
 
-    label_t* current_label = NULL;
-    label_t* current_entry = NULL;
-    label_t* current_extern = NULL;
+    label_t *current_label = NULL;
+    label_t *current_entry = NULL;
+    label_t *current_extern = NULL;
+
+    word* encoded_word;
 
     bool label_flag = false;
 
     int data, i = 0;
 
-    binary_command binaryCommand = {0,0,0,0,0,0};
+    /*  */
+    binary_command binaryCommand = {0, 0, 0, 0, 0, 0};
     binary_data binaryData = {0};
-    binary_param binaryFirstParam = {0,0};
-    binary_param binarySecondParam = {0,0};
-    binary_two_registers binaryTwoRegisters = {0,0,0};
+
     /* if there is a jump with parameters command: */
-    binary_param binaryJumpFirstParam = {0,0};
-    binary_param binaryJumpSecondParam = {0,0};
+    binary_param binaryJumpFirstParam = {0, 0};
+    binary_param binaryJumpSecondParam = {0, 0};
 
     DC = 0;
     IC = 0;
 
     /* read new line from file */
-    while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
+    while (fgets(line, MAX_LINE_SIZE, file) != NULL) {
         /* increase line counter */
         line_number++;
         /* split line into tokens */
         token = strtok(strdup(line), SPACE_SEP);
 
         /* check if there is a label */
-        if(strchr(token, LABEL_SEP)) {
+        if (strchr(token, LABEL_SEP)) {
             if (isValidLabel(token)) {
                 current_label_name = strdup(token);
-                current_label_name[strlen(current_label_name)-1] = NULL_TERMINATOR;
+                current_label_name[strlen(current_label_name) - 1] = NULL_TERMINATOR;
                 current_label = findLabel(current_label_name, label_list, extern_list, NULL);
                 if (current_label == NULL) {
                     line_error(UNDEFINED_LABEL, base_file_name, line_number);
@@ -82,7 +86,7 @@ int second_run(int IC, int DC,
             /* check for .data symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
                 /* encode all data */
-                while((token = strtok(NULL, COMMA_SEP)) != NULL) {
+                while ((token = strtok(NULL, COMMA_SEP)) != NULL) {
                     if (is_number(token)) {
                         /* TODO: calculate if number if out of range */
                         /* TODO: check the sign of the number (+-) and calculate if negative */
@@ -93,16 +97,15 @@ int second_run(int IC, int DC,
                         continue;
                     }
                 }
-            }
-            else if (isStrEqual(token, STRING_SYMBOL)) {
-                token = strtok(NULL,SPACE_SEP);
+            } else if (isStrEqual(token, STRING_SYMBOL)) {
+                token = strtok(NULL, SPACE_SEP);
                 if (token == NULL) {
                     continue;
                 }
-                if (token[0] != STRING_QUOTE || token[strlen(token)-1] != STRING_QUOTE) {
+                if (token[0] != STRING_QUOTE || token[strlen(token) - 1] != STRING_QUOTE) {
                     continue;
                 }
-                token[strlen(token)-1] = NULL_TERMINATOR;
+                token[strlen(token) - 1] = NULL_TERMINATOR;
                 token++;
                 while (token[0] != NULL_TERMINATOR) {
                     binaryData.data = token[0];
@@ -114,8 +117,7 @@ int second_run(int IC, int DC,
                 memory_image[DC].data = binaryData;
                 DC++;
             }
-        }
-        else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
+        } else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
             continue;
         } else {
             /* get current command index */
@@ -129,7 +131,7 @@ int second_run(int IC, int DC,
                 }
 
                 /* check command type (group) */
-                int command_length = 1;
+                int command_length = 0;
                 command_t command = commands[command_index];
 
                 bool is_jump = (!command.arg1) && (command.arg2 & Jump);
@@ -149,8 +151,13 @@ int second_run(int IC, int DC,
 
                 binaryCommand.opcode = command_index;
 
+                /* encode command into code image */
+                code_image[IC].command = binaryCommand;
+
                 /* if expecting first arg */
                 if(command.arg1) {
+                    /* continue to first arg */
+                    IC++;
                     token = strtok(NULL, COMMA_SEP);
                     if(token) {
                         if((source_type = get_arg_type(token, Immediate | Direct | Register)) == None) {
@@ -163,43 +170,15 @@ int second_run(int IC, int DC,
                         /* if arg type is valid, encode it */
                         binaryCommand.src_type = encodeArgumentType(source_type);
 
-                        switch (source_type) {
-                            case Immediate:
-                                token++;
-                                if (is_number(token)) {
-                                    /* TODO: check for negative number */
-                                    binaryFirstParam.data = atoi(token);
-                                    binaryFirstParam.encoding_type = Absolute;
-                                    code_image[IC+command_length].param = binaryFirstParam;
-                                } else
-                                    continue;
-                                break;
-                            case Direct:
-                                current_label = findLabel(token, label_list, extern_list, NULL);
-                                if (current_label == NULL) {
-                                    line_error(UNDEFINED_LABEL, base_file_name, line_number);
-                                    error_flag = true;
-                                    continue;
-                                }
+                        encoded_word = encodeArgumentToWord(token, source_type, label_list, extern_list,
+                                                            &extern_show_list, base_file_name, line_number);
 
-                                if(current_label->type == Extern) {
-                                    binaryFirstParam.encoding_type = External;
-                                    binaryFirstParam.data = 0;
-                                    extern_show_list = addLabelNode(extern_show_list, current_label->name, IC + command_length, Code);
-                                } else {
-                                    binaryFirstParam.encoding_type = Relocatable;
-                                    binaryFirstParam.data = current_label->place;
-                                }
-
-                                code_image[IC + command_length].param = binaryFirstParam;
-                                break;
-                            case Register:
-                                binaryTwoRegisters.encoding_type = Absolute;
-                                binaryTwoRegisters.src_register = find_register(token);
-                                code_image[IC + command_length].two_registers = binaryTwoRegisters;
-                                break;
+                        if(encoded_word->param.encoding_type == External) {
+                            /* add to external show list */
+                            extern_show_list = addLabelNode(extern_show_list, token, IC, Code);
                         }
-                        command_length++;
+
+
                     } else {
                         /* if expecting 1 arg and not found raise error */
                         continue;
@@ -220,100 +199,7 @@ int second_run(int IC, int DC,
 
                         binaryCommand.dest_type = encodeArgumentType(dest_type);
 
-                        switch (dest_type) {
-                            case Immediate:
-                                token++;
-                                if (is_number(token)) {
-                                    /* TODO: check for negative number */
-                                    binarySecondParam.data = atoi(token);
-                                    binarySecondParam.encoding_type = Absolute;
-                                    code_image[IC + command_length].param = binarySecondParam;
-                                } else
-                                    continue;
-                                break;
-                            case Direct:
-                                current_label = findLabel(token, label_list, extern_list, NULL);
-                                if (current_label == NULL) {
-                                    line_error(UNDEFINED_LABEL, base_file_name, line_number);
-                                    continue;
-                                }
 
-                                if (current_label->type == Extern) {
-                                    binarySecondParam.encoding_type = External;
-                                    binarySecondParam.data = 0;
-                                    extern_show_list = addLabelNode(extern_show_list, current_label->name,
-                                                                    IC + command_length, Code);
-                                } else {
-                                    binarySecondParam.encoding_type = Relocatable;
-                                    binarySecondParam.data = current_label->place;
-                                }
-                                code_image[IC + command_length].param = binarySecondParam;
-                                break;
-                            case Register:
-                                binaryTwoRegisters.encoding_type = Absolute;
-                                binaryTwoRegisters.dest_register = find_register(token);
-                                if (source_type == Register)
-                                    command_length--;
-                                code_image[IC + command_length].two_registers = binaryTwoRegisters;
-                                break;
-                            case Jump:
-                                binarySecondParam.encoding_type = Relocatable;
-                                current_label_name = strdup(token);
-                                current_label_name = strtok(current_label_name, JMP_OPEN_BRACKET);
-
-                                /* errors that first run captures */
-                                if (current_label_name == NULL || !isValidLabel(current_label_name))
-                                    continue;
-
-                                current_label = findLabel(current_label_name, label_list, extern_list, NULL);
-
-                                /* error that second run captures - undefined label */
-                                if (current_label == NULL) {
-                                    line_error(UNDEFINED_LABEL, base_file_name, line_number);
-                                    error_flag = true;
-                                    continue;
-                                }
-                                if (current_label->type == Extern) {
-                                    binarySecondParam.encoding_type = External;
-                                    binarySecondParam.data = 0;
-                                    extern_show_list = addLabelNode(extern_show_list, current_label->name,
-                                                                    IC + command_length, Code);
-                                } else {
-                                    binarySecondParam.encoding_type = Relocatable;
-                                    binarySecondParam.data = current_label->place;
-                                }
-                                code_image[IC + command_length].param = binarySecondParam;
-
-                                /* check for jump params */
-                                arg_type first_param_type, second_param_type;
-
-                                /* first param is second arg in command etc. */
-                                if ((second_param_type = getJumpParamType(token, 1)) == None
-                                    || (first_param_type = getJumpParamType(token, 2)) == None) {
-                                    continue;
-                                }
-
-                                binaryCommand.second_par_type = encodeArgumentType(second_param_type);
-                                binaryCommand.first_par_type = encodeArgumentType(first_param_type);
-
-                                
-
-                                switch(second_param_type) {
-                                    case Immediate:
-                                        if ((token = strtok(NULL, COMMA_SEP)) == NULL) {
-                                            continue;
-                                        }
-                                        token++;
-                                        if (is_number(token)) {
-
-                                            command_length += 2;
-                                            if (!(first_param_type == Register && second_param_type == Register)) {
-                                                command_length++;
-                                            }
-                                            break;
-                                        }
-                                }
-                        }
 
                     } else {
                         /* if expecting 2 args and not found raise error */
@@ -325,8 +211,7 @@ int second_run(int IC, int DC,
                     continue;
                 }
 
-                /* encode command into code image */
-                code_image[IC].command = binaryCommand;
+
 
                 /* code_image[++IC].param = 0; */
                 IC += command_length;
@@ -337,42 +222,42 @@ int second_run(int IC, int DC,
                 continue;
             }
         }
-    }
 
-    /* print all command image and data image */
-    printf("IC: %d DC: %d\n", IC, DC);
-    for (i = 0; i < DC; ++i) {
-        /* print command in binary 1 and 0 */
-        data = memory_image[i].data.data;
-        printf("DC: %d data: %d - ", i, data);
-        /* print data in binary 1 and 0 */
-        int j;
-        for (j = 0; j < WORD_SIZE; ++j) {
-            printf("%c", getBitRepresentation((data >> (WORD_SIZE-1 - j)) & 1));
-        }
-        printf("\n");
-    }
-
-    /* if all good  create entry and external files from lists */
-    if(!error_flag) {
-        printf("No errors found, creating output files: %s\n", base_file_name);
-
-        createObjFile(IC, code_image, DC, memory_image, base_file_name);
-
-        /* add the IC address and START ADDRESS to all entry and extern labels */
-        IC += START_ADD;
-        updateIC(START_ADD, entry_show_list, extern_show_list);
-        updateDC(IC, entry_show_list, extern_show_list);
-
-        if (entry_show_list != NULL) {
-            createEntryFile(entry_show_list, base_file_name);
-        }
-        if (extern_show_list != NULL) {
-            createExternFile(extern_show_list, base_file_name);
+        /* print all command image and data image */
+        printf("IC: %d DC: %d\n", IC, DC);
+        for (i = 0; i < DC; ++i) {
+            /* print command in binary 1 and 0 */
+            data = memory_image[i].data.data;
+            printf("DC: %d data: %d - ", i, data);
+            /* print data in binary 1 and 0 */
+            int j;
+            for (j = 0; j < WORD_SIZE; ++j) {
+                printf("%c", getBitRepresentation((data >> (WORD_SIZE - 1 - j)) & 1));
+            }
+            printf("\n");
         }
 
+        /* if all good  create entry and external files from lists */
+        if (!error_flag) {
+            printf("No errors found, creating output files: %s\n", base_file_name);
+
+            createObjFile(IC, code_image, DC, memory_image, base_file_name);
+
+            /* add the IC address and START ADDRESS to all entry and extern labels */
+            IC += START_ADD;
+            updateIC(START_ADD, entry_show_list, extern_show_list);
+            updateDC(IC, entry_show_list, extern_show_list);
+
+            if (entry_show_list != NULL) {
+                createEntryFile(entry_show_list, base_file_name);
+            }
+            if (extern_show_list != NULL) {
+                createExternFile(extern_show_list, base_file_name);
+            }
+
+        }
+        return error_flag;
     }
-    return error_flag;
 }
 
 void createEntryFile(node_t* entry_show_list, char* base_file_name) {
@@ -463,10 +348,114 @@ void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* b
         writeBinToFile(current_word, WORD_SIZE, output_obj_file);
         fputc('\n', output_obj_file);
     }
-
-
-
-
-
 }
 
+
+word* encodeArgumentToWord(argument_t current_arg, argument_t prev_arg, node_t* label_list, node_t* extern_list,
+                           char* base_file_name, size_t line_number) {
+    word* encoded_word = (word*) malloc(sizeof(word));
+
+    binary_param binaryParam;
+    binary_two_registers binaryTwoRegisters;
+
+    binary_command binaryCommand;
+
+    label_t* current_label;
+    char* current_label_name;
+
+    /* check for jump params */
+    arg_type first_param_type, second_param_type;
+
+    switch (current_arg.type) {
+        case Immediate:
+            current_arg++;
+            if (is_number(current_arg)) {
+                /* TODO: check for negative number */
+                binaryParam.data = atoi(current_arg);
+                binaryParam.encoding_type = Absolute;
+                encoded_word->param =  binaryParam;
+            } else {
+                return NULL;
+            }
+            break;
+        case Direct:
+            current_label = findLabel(current_arg, label_list, extern_list, NULL);
+            if (current_label == NULL) {
+                line_error(UNDEFINED_LABEL, base_file_name, line_number);
+                return NULL;
+            }
+
+            if (current_label->type == Extern) {
+                binaryParam.encoding_type = External;
+                binaryParam.data = 0;
+            } else {
+                binaryParam.encoding_type = Relocatable;
+                binaryParam.data = current_label->place;
+            }
+            encoded_word->param = binaryParam;
+            break;
+        case Register:
+            binaryTwoRegisters.encoding_type = Absolute;
+            binaryTwoRegisters.dest_register = find_register(current_arg);
+            if (prev_arg_type == Register)
+                binaryTwoRegisters.src_register = find_register();
+            code_image[IC + command_length].two_registers = binaryTwoRegisters;
+            break;
+        case Jump:
+            binaryParam.encoding_type = Relocatable;
+            current_label_name = strdup(current_arg);
+            current_label_name = strtok(current_label_name, JMP_OPEN_BRACKET);
+
+            /* errors that first run captures */
+            if (current_label_name == NULL || !isValidLabel(current_label_name))
+                return NULL;
+
+            current_label = findLabel(current_label_name, label_list, extern_list, NULL);
+
+            /* error that second run captures - undefined label */
+            if (current_label == NULL) {
+                line_error(UNDEFINED_LABEL, base_file_name, line_number);
+                return NULL;
+            }
+            if (current_label->type == Extern) {
+                binaryParam.encoding_type = External;
+                binaryParam.data = 0;
+            } else {
+                binaryParam.encoding_type = Relocatable;
+                binaryParam.data = current_label->place;
+            }
+
+            encoded_word->param = binaryParam;
+
+
+
+            /* first param is second arg in command etc. */
+            if ((second_param_type = getJumpParamType(current_arg, 1)) == None
+                || (first_param_type = getJumpParamType(current_arg, 2)) == None) {
+                return NULL;
+            }
+
+            binaryCommand.second_par_type = encodeArgumentType(second_param_type);
+            binaryCommand.first_par_type = encodeArgumentType(first_param_type);
+
+            switch(second_param_type) {
+                case Immediate:
+                    if ((current_arg = strtok(NULL, COMMA_SEP)) == NULL) {
+                        return ERROR_CODE;
+                    }
+                    current_arg++;
+                    if (is_number(current_arg)) {
+
+                        command_length += 2;
+                        if (!(first_param_type == Register && second_param_type == Register)) {
+                            command_length++;
+                        }
+                        break;
+                    }
+            }
+        case None:
+            break;
+    }
+
+    return encoded_word;
+}

@@ -1,6 +1,8 @@
 #ifndef ERRORS_HEADER
 #define ERRORS_HEADER
 
+#define ERROR_CODE (-1)
+
 /* error messages */
 typedef enum {
     FILE_OPEN_ERROR,
