@@ -200,8 +200,9 @@ int second_run(int IC, int DC,
                 if (command.arg2_optional_types) {
                     /* continue to second arg */
                     offset++;
-                    token = strtok(NULL, is_jump ? JMP_OPEN_BRACKET COMMA_SEP : COMMA_SEP);
-
+                    token = strtok(NULL,SPACE_SEP);
+                    arg2.value = strdup(token);
+                    token = strtok(token, is_jump ? JMP_OPEN_BRACKET : COMMA_SEP);
                     if (token) {
                         if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
                             continue;
@@ -211,8 +212,8 @@ int second_run(int IC, int DC,
                         binaryCommand.dest_type = encodeArgumentType(dest_type);
 
                         /* save current token and type in argument 2 */
-                        arg2.value = strdup(token);
                         arg2.type = dest_type;
+
 
                         /* get encoded word of argument */
                         if ((error_code = encodeArgumentToWord(token, (word **) &binarySecondParam, (source_type == Register ? find_register(arg1.value) : -1), dest_type,
@@ -235,7 +236,8 @@ int second_run(int IC, int DC,
                             arg_type jmpFirstParmType = None, jmpSecondParmType = None;
 
                             offset++;
-                            token = strtok(arg2.value, COMMA_SEP);
+                            token = strtok(arg2.value, JMP_OPEN_BRACKET);
+                            token = strtok(NULL, COMMA_SEP);
                             if (token) {
                                 if ((jmpFirstParmType = get_arg_type(token, Immediate | Direct | Register)) == None) {
                                     continue;
