@@ -127,7 +127,7 @@ int firstRun(FILE* file, char* base_file_name) {
                 if (label_flag) {
                     line_warning(LABEL_DEF_BEFORE_EXTERN, base_file_name, line_number);
                 }
-                extern_list = addLabelNode(extern_list, token, 0, Extern);
+                extern_list = addLabelNode(extern_list, token, line_number, Extern);
             } else {
 
                 /* get entry label */
@@ -163,7 +163,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     line_warning(LABEL_DEF_BEFORE_ENTRY, base_file_name, line_number);
                 }
                 /* add to entry list */
-                entry_list = addLabelNode(entry_list, token, 0, Entry);
+                entry_list = addLabelNode(entry_list, token, line_number, Entry);
             }
         }
         else {
@@ -244,7 +244,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     command_length--;
 
                 IC += command_length;
-                printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length);
+                /* printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length); */
             } else {
                 line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
                 continue;
@@ -253,11 +253,11 @@ int firstRun(FILE* file, char* base_file_name) {
     }
 
     /* update DC */
-    updateDC(IC, label_list, extern_list, entry_list, NULL);
+    updateDC(IC, label_list, NULL);
     DC += IC;
 
     info_file("Finished first run", base_file_name);
-    printf("IC: %d DC: %d\n", IC, DC);
+    /* printf("IC: %d DC: %d\n", IC, DC); */
 
     /* start second run */
     rewind(file);

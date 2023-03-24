@@ -311,13 +311,15 @@ int second_run(int IC, int DC,
                 IC += offset + 1;
 
 
-                printf("\t%lu command: %s length: %d\n", line_number, command.name, offset + 1);
+               /* printf("\t%lu command: %s length: %d\n", line_number, command.name, offset + 1); */
             } else {
                 line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
                 continue;
             }
         }
     }
+
+    error_flag = error_flag | checkForUndefinedEntries(entry_list,entry_show_list,base_file_name);
 
     /* if all good  create entry and external files from lists */
     if (!error_flag) {
@@ -338,6 +340,11 @@ int second_run(int IC, int DC,
         }
 
     }
+
+    /* TODO: free all allocated memory */
+
+    info_file("Finished second run", base_file_name);
+
     return error_flag;
 }
 
@@ -382,73 +389,6 @@ ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_ty
     }
     return NO_ERROR;
 }
-
-ERROR encodeArgumentInImage(word* code_image, argument_t current_arg, argument_t prev_arg,
-                           node_t* label_list, node_t* extern_list) {
-    binary_param binaryParam = {0};
-    binary_two_registers binaryTwoRegisters = {0};
-
-    label_t* current_label;
-
-    switch (current_arg.type) {
-        case Immediate:
-            current_arg.value++;
-            if (is_number(current_arg.value)) {
-                /* TODO: check for negative number */
-                binaryParam.data = atoi(current_arg.value);
-                binaryParam.encoding_type = Absolute;
-                code_image->param = binaryParam;
-            }
-            break;
-        case Direct:
-            current_label = findLabel(current_arg.value, label_list, extern_list, NULL);
-            if (current_label == NULL) {
-                return UNDEFINED_LABEL;
-            }
-
-            if (current_label->type == Extern) {
-                binaryParam.encoding_type = External;
-                binaryParam.data = 0;
-            } else {
-                binaryParam.encoding_type = Relocatable;
-                binaryParam.data = current_label->place;
-            }
-            code_image->param = binaryParam;
-            break;
-        case Register:
-            binaryTwoRegisters.encoding_type = Absolute;
-
-            binaryTwoRegisters.src_register = find_register(current_arg.value);
-
-            if (prev_arg.type == Register) {
-                binaryTwoRegisters.dest_register = binaryTwoRegisters.src_register;
-                binaryTwoRegisters.src_register = find_register(prev_arg.value);
-            }
-
-            code_image->two_registers = binaryTwoRegisters;
-            break;
-        case Jump:
-
-
-            break;
-        case None:
-            break;
-    }
-
-    return NO_ERROR;
-}
-
-ERROR encodeJumpCommandToWord(word* code_image, argument_t jmp_arg, node_t* label_list, node_t* extern_list) {
-    binary_command JmpBinaryCommand = {0};
-
-
-
-    return NO_ERROR;
-}
-
-
-
-
 
 
 void createEntryFile(node_t* entry_show_list, char* base_file_name) {
@@ -540,5 +480,19 @@ void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* b
         writeBinToFile(current_word, WORD_SIZE, output_obj_file);
         fputc('\n', output_obj_file);
     }
+}
+
+bool checkForUndefinedEntries(node_t* entry_list, node_t* entry_show_list, char* base_file_name) {
+
+    bool error_flag = false;
+
+    while(entry_list != NULL) {
+        if (!findLabelInList(((label_t*) entry_list->data)->name, entry_show_list)) {
+            line_error(UNDEFINED_LABEL, base_file_name, ((label_t*) entry_list->data)->place);
+            error_flag = true;
+        }
+        entry_list = (node_t*) entry_list->next;
+    }
+    return error_flag;
 }
 
