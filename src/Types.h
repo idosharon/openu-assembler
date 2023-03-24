@@ -7,12 +7,6 @@
 /* define bool */
 typedef enum { false, true } bool;
 
-typedef struct {
-    char* base_name;
-    size_t line_number;
-    size_t skipped_lines;
-} AsmFile;
-
 /* label type */
 typedef enum {
     Code,
@@ -58,17 +52,8 @@ typedef struct {
 typedef struct {
     char* name;
 
-    unsigned arg1: 4;
-    unsigned arg2: 4;
-
-    enum {
-        ZERO_ARGS,
-        ONE_ARGS,
-        TWO_ARGS,
-        THREE_ARGS
-    } num_of_args;
-
-    bool is_jump;
+    unsigned arg1_optional_types: 4;
+    unsigned arg2_optional_types: 4;
 
 } command_t;
 

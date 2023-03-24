@@ -180,53 +180,23 @@ int firstRun(FILE* file, char* base_file_name) {
                 int args_counter = 0;
                 command_t command = commands[command_index];
 
-                bool is_jump = (!command.arg1) && (command.arg2 & Jump);
+                bool is_jump = (!command.arg1_optional_types) && (command.arg2_optional_types & Jump);
 
                 arg_type source_type = None, dest_type = None;
 
                 /* if expecting 1 arg */
-                if(command.arg1) {
+                if(command.arg1_optional_types) {
                     token = strtok(NULL, COMMA_SEP);
                     if(token) {
-                        if((source_type = get_arg_type(token, Immediate | Direct | Register)) == None) {
+                        if((source_type = get_arg_type(token, command.arg1_optional_types)) == None) {
                             line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
                             error_flag = true;
                             continue;
                         }
-                        if(!(source_type & command.arg1)) {
-                            line_error(INVALID_ARG_TYPE, base_file_name, line_number);
+
+                        if(!(source_type & command.arg1_optional_types)) {
+                            line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
                             error_flag = true;
-                            continue;
-                        }
-
-                        command_length++;
-
-                    } else {
-                        line_error(TOO_FEW_ARGS, base_file_name, line_number);
-                        continue;
-                    }
-                }
-
-                /* if expecting 2 args, check if there is a second arg */
-                if(command.arg2) {
-                    token = strtok(NULL, is_jump ? LINE_BREAK : COMMA_SEP);
-                    if(token) {
-                        /* ok lets check for Jump type */
-                        if ((dest_type = get_arg_type(token, Immediate | Jump | Direct | Register)) == None) {
-                            line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
-                            error_flag = true;
-                            continue;
-                        }
-                        if (!(dest_type & command.arg2)) {
-                            line_error(INVALID_ARG_TYPE, base_file_name, line_number);
-                            error_flag = true;
-                            continue;
-                        }
-
-                        /* TODO: Depth analysis of token to get exact length */
-                        if(dest_type == Jump) {
-                            /* get jump params and check the length of overall command */
-                            command_length += getJumpParamsLength(token);
                         } else {
                             command_length++;
                         }
@@ -234,18 +204,45 @@ int firstRun(FILE* file, char* base_file_name) {
                         line_error(TOO_FEW_ARGS, base_file_name, line_number);
                         continue;
                     }
+                }
+
+                /* if expecting 2 args, check if there is a second arg */
+                if(command.arg2_optional_types) {
+                    token = strtok(NULL, is_jump ? LINE_BREAK : COMMA_SEP);
+                    if(token) {
+                        /* ok lets check for Jump type */
+                        if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
+                            line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                            error_flag = true;
+                            continue;
+                        }
+                        if (!(dest_type & command.arg2_optional_types)) {
+                            line_error(INVALID_DEST_ARG, base_file_name, line_number);
+                            error_flag = true;
+                        } else {
+                            if(dest_type == Jump) {
+                                /* get jump params and check the length of overall command */
+                                command_length += getJumpParamsLength(token);
+                            } else {
+                                command_length++;
+                            }
+                        }
+                    } else {
+                        line_error(TOO_FEW_ARGS, base_file_name, line_number);
+                        continue;
+                    }
 
                 }
 
-                if((token = strtok(NULL, SPACE_SEP)) != NULL) {
+                if(strtok(NULL, SPACE_SEP) != NULL) {
                     line_error(TOO_MANY_ARGS, base_file_name, line_number);
                     continue;
                 }
 
                 /* if both args are registers, decrease command length by 1 */
-                if(source_type == Register && dest_type == Register) {
+                if(source_type == Register && dest_type == Register)
                     command_length--;
-                }
+
                 IC += command_length;
                 printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length);
             } else {

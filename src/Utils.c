@@ -196,45 +196,8 @@ label_t* findLabelInList(char* name, node_t* head) {
     return NULL;
 }
 
-char* getRegisterNumber(int index) {
-    switch (index) {
-        case 0: return "000";
-        case 1: return "001";
-        case 2: return "010";
-        case 3: return "011";
-        case 4: return "100";
-        case 5: return "101";
-        case 6: return "110";
-        case 7: return "111";
-        default: return NULL;
-    }
-}
-
-char* getOpcode(int index) {
-    switch (index) {
-        case 0: return "0000";
-        case 1: return "0001";
-        case 2: return "0010";
-        case 3: return "0011";
-        case 4: return "0100";
-        case 5: return "0101";
-        case 6: return "0110";
-        case 7: return "0111";
-        case 8: return "1000";
-        case 9: return "1001";
-        case 10: return "1010";
-        case 11: return "1011";
-        case 12: return "1100";
-        case 13: return "1101";
-        case 14: return "1110";
-        case 15: return "1111";
-
-        default: return NULL;
-    }
-}
-
 /* update the DC address of all data labels */
-void updateDC(int IC, node_t* label_list, ...) {
+void updateDC(size_t IC, node_t* label_list, ...) {
     label_t* label;
     va_list lists;
     va_start(lists, label_list);
@@ -244,7 +207,7 @@ void updateDC(int IC, node_t* label_list, ...) {
     }
 }
 
-void updateDCInList(int IC, node_t* head) {
+void updateDCInList(size_t IC, node_t* head) {
     label_t* label;
     while(head != NULL) {
         label = (label_t*) head->data;

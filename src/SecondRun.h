@@ -12,7 +12,9 @@ void createObjFile(int, word*, int, word*, char*);
 void createEntryFile(node_t*, char*);
 void createExternFile(node_t*, char*);
 
-word* encodeArgumentToWord(argument_t, argument_t, node_t*, node_t*, char*, size_t);
+ERROR encodeArgument(word*, node_t*, node_t*, node_t**);
+ERROR encodeArgumentInImage(word*, argument_t, argument_t, node_t*, node_t*);
+ERROR encodeJumpCommandToWord(word*, argument_t, node_t*, node_t*);
 
 
 #endif

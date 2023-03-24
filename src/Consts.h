@@ -69,15 +69,7 @@
 /* command types */
 #define NUM_OF_REGISTERS 8
 extern const char* registers[NUM_OF_REGISTERS];
-/* register types */
-typedef enum {
-    r0,
-    r1,
-    r2,
-    r3,
-    r4,
-    r5,
-    r6,
-    r7
-} REGISTERS_INDEX;
+
+#define EMPTY_ARGUMENT {NULL, None}
+
 #endif

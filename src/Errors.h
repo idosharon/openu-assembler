@@ -1,10 +1,15 @@
 #ifndef ERRORS_HEADER
 #define ERRORS_HEADER
 
-#define ERROR_CODE (-1)
-
 /* error messages */
 typedef enum {
+    /* general error code */
+    ERROR_CODE = -1,
+
+    /* no error code */
+    NO_ERROR,
+
+    /* specific error codes with name in ERRORS array */
     FILE_OPEN_ERROR,
     MACRO_SYNTAX_ERROR,
     UNKNOWN_COMMAND,
@@ -29,7 +34,7 @@ typedef enum {
     CONFLICT_LOCAL_EXTERNAL_LABELS,
     STRING_MISSING_ARGUMENT,
     STRING_SYNTAX_ERROR
-} ERRORS_INDEX;
+} ERROR;
 
 extern const char* ERRORS[];
 
@@ -43,7 +48,7 @@ typedef enum {
     MACRO_SYNTAX_WARNING,
     LABEL_DEF_BEFORE_EXTERN,
     LABEL_DEF_BEFORE_ENTRY
-} WARNINGS_INDEX;
+} WARNING;
 
 extern const char* WARNINGS[];
 

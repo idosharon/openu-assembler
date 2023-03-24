@@ -18,6 +18,7 @@
 #define IS_EXTERN_SYMBOL(token) (isStrEqual(token, EXTERN_SYMBOL))
 #define IS_ENTRY_SYMBOL(token) (isStrEqual(token, ENTRY_SYMBOL))
 
+#define resetArg(arg) (arg).type = None; (arg).value = NULL
 
 bool is_number(char*);
 
@@ -28,8 +29,8 @@ label_t* findLabelInList(char *name, node_t *head);
 label_t* findLabel(char*, node_t*, ...);
 node_t* addLabelNode(node_t*, char*, size_t, label_type);
 
-void updateDCInList(int, node_t*);
-void updateDC(int, node_t*, ...);
+void updateDCInList(size_t, node_t*);
+void updateDC(size_t, node_t*, ...);
 
 void updateICInList(int, node_t*);
 void updateIC(int, node_t*, ...);
