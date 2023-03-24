@@ -166,40 +166,79 @@ int second_run(int IC, int DC,
                     token = strtok(NULL, COMMA_SEP);
 
                     if (token) {
-                        if ((source_type = get_arg_type(token, Immediate | Direct | Register)) == None) {
+                        if ((source_type = get_arg_type(token, command.arg1_optional_types)) == None) {
                             continue;
                         }
-                        /* if arg type is in the optional types for command continue */
-                        if (source_type & command.arg1_optional_types) {
-                            /* if arg type is valid, encode it */
-                            binaryCommand.src_type = encodeArgumentType(source_type);
+                        /* if arg type is valid, encode it */
+                        binaryCommand.src_type = encodeArgumentType(source_type);
 
-                            /* save current token and type in argument 1 */
-                            arg1.value = token;
-                            arg1.type = source_type;
+                        /* save current token and type in argument 1 */
+                        arg1.value = token;
+                        arg1.type = source_type;
 
-                            /* get encoded word of argument */
-                            if ((error_code = encodeArgumentToWord(encoded_word, arg1, arg2, label_list, extern_list))) {
-                                line_error(error_code, base_file_name, line_number);
-                                error_flag = true;
-                            }
-
-                            /* TODO: fix this */
-                            if (encoded_word->param.encoding_type == External) {
-                                /* add to external show list */
-                                extern_show_list = addLabelNode(extern_show_list, token, IC + offset, Code);
-                            }
-
-                            /* add encoded word to code image */
-                            code_image[IC + offset] = *encoded_word;
+                        /* get encoded word of argument */
+                        if ((error_code = encodeArgumentToWord(encoded_word, arg1, arg2, label_list, extern_list))) {
+                            line_error(error_code, base_file_name, line_number);
+                            error_flag = true;
                         }
+
+                        /* TODO: fix this */
+                        if (encoded_word->param.encoding_type == External) {
+                            /* add to external show list */
+                            extern_show_list = addLabelNode(extern_show_list, token, IC + offset, Code);
+                        }
+
+                        /* add encoded word to code image */
+                        code_image[IC + offset] = *encoded_word;
+
                     } else {
                         /* if expecting 1 arg and not found raise error */
                         continue;
                     }
                 }
 
+                /* if expecting 2 args, check if there is a second arg */
+                if (command.arg2_optional_types) {
+                    /* continue to second arg */
+                    offset++;
+                    token = strtok(NULL, is_jump ? LINE_BREAK : COMMA_SEP);
 
+                    if (token) {
+                        /* ok lets check for Jump type */
+                        if ((dest_type = get_arg_type(token, Immediate | Direct | Register | Jump)) == None) {
+                            continue;
+                        }
+                        if (dest_type & command.arg2_optional_types) {
+                            binaryCommand.dest_type = encodeArgumentType(dest_type);
+
+                            if(dest_type == Jump) {
+
+
+
+                            } else {
+                                arg2.value = token;
+                                arg2.type = dest_type;
+
+                                if(source_type == Register && dest_type == Register) {
+                                    offset--;
+                                }
+
+                                /* add encoded word to code image */
+                                if ((error_code = encodeArgumentToWord(code_image + IC + offset, arg2, arg1, label_list, extern_list))) {
+                                    line_error(error_code, base_file_name, line_number);
+                                    error_flag = true;
+                                }
+
+                                if (code_image[IC + offset].param.encoding_type == External) {
+                                    /* add to external show list */
+                                    extern_show_list = addLabelNode(extern_show_list, token, IC + offset, Code);
+                                }
+                            }
+                        }
+                    } else {
+                        continue;
+                    }
+                }
 
 
                 if (strtok(NULL, SPACE_SEP) != NULL) {
@@ -241,48 +280,11 @@ int second_run(int IC, int DC,
     return error_flag;
 }
 
-ERROR encodeArgument(word* code_image, argument_t current_arg, node_t* label_list, node_t* extern_list, node_t** extern_show_list) {
-    if (command.arg2_optional_types) {
-        /* continue to second arg */
-        offset++;
-        token = strtok(NULL, is_jump ? LINE_BREAK : COMMA_SEP);
-
-        if (token) {
-            /* ok lets check for Jump type */
-            if ((dest_type = get_arg_type(token, Immediate | Jump | Direct | Register)) == None) {
-                continue;
-            }
-            if (dest_type & command.arg2_optional_types) {
-                binaryCommand.dest_type = encodeArgumentType(dest_type);
-
-                if(dest_type == Jump) {
+void encodeArgument(word* code_image, char* token, arg_type optional_types,
+                    node_t* label_list, node_t* extern_list, node_t** extern_show_list) {
+    arg_type current_type;
 
 
-
-                } else {
-                    arg2.value = token;
-                    arg2.type = dest_type;
-
-                    if(source_type == Register && dest_type == Register) {
-                        offset--;
-                    }
-
-                    /* add encoded word to code image */
-                    if ((error_code = encodeArgumentToWord(code_image + IC + offset, arg2, arg1, label_list, extern_list))) {
-                        line_error(error_code, base_file_name, line_number);
-                        error_flag = true;
-                    }
-
-                    if (code_image[IC + offset].param.encoding_type == External) {
-                        /* add to external show list */
-                        extern_show_list = addLabelNode(extern_show_list, token, IC + offset, Code);
-                    }
-                }
-            }
-        } else {
-            continue;
-        }
-    }
 }
 
 ERROR encodeArgumentInImage(word* code_image, argument_t current_arg, argument_t prev_arg,
