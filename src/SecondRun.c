@@ -208,12 +208,16 @@ int second_run(int IC, int DC,
                             continue;
                         }
 
+                        is_jump = (getJumpParamsLength(arg2.value) != -1);
+
                         /* if arg type is valid, encode it */
-                        binaryCommand.dest_type = encodeArgumentType(dest_type);
+                        if (is_jump)
+                            binaryCommand.dest_type = encodeArgumentType(Jump);
+                        else
+                            binaryCommand.dest_type = encodeArgumentType(dest_type);
 
                         /* save current token and type in argument 2 */
                         arg2.type = dest_type;
-
 
                         /* get encoded word of argument */
                         if ((error_code = encodeArgumentToWord(token, (word **) &binarySecondParam, (source_type == Register ? find_register(arg1.value) : -1), dest_type,
@@ -274,10 +278,15 @@ int second_run(int IC, int DC,
                                 binaryCommand.first_par_type = encodeArgumentType(jmpSecondParmType);
 
                                 /* get encoded word of argument */
-                                if ((error_code = encodeArgumentToWord(token, (word **) &binaryJumpSecondParam, -1, jmpSecondParmType,
+                                if ((error_code = encodeArgumentToWord(token, (word **) &binaryJumpSecondParam, (jmpFirstParmType == Register ? find_register(arg1.value) : 0), jmpSecondParmType,
                                                                        label_list, extern_list, &extern_show_list, IC+offset))) {
                                     line_error(error_code, base_file_name, line_number);
                                     error_flag = true;
+                                }
+
+                                /* encode word */
+                                if (jmpFirstParmType == Register && jmpSecondParmType == Register) {
+                                    offset--;
                                 }
 
                                 /* encode word */
@@ -352,7 +361,7 @@ ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_ty
             if ((current_label = findLabel(token, label_list, extern_list)) == NULL) {
                 return UNDEFINED_LABEL;
             }
-            if (current_label->type == External) {
+            if (current_label->type == Extern) {
                 (*binArg)->param.encoding_type = External;
                 *extern_show_list = addLabelNode(*extern_show_list, token, IC, Code);
             }
