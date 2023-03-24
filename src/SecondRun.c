@@ -48,6 +48,10 @@ int second_run(int IC, int DC,
     binary_param* binaryFirstParam = (binary_param*)calloc(sizeof(binary_param), 1);
     binary_param* binarySecondParam = (binary_param*)calloc(sizeof(binary_param), 1);
 
+    binarySecondParam->data = 0;
+    binarySecondParam->encoding_type = None;
+    binaryFirstParam->data = 0;
+    binaryFirstParam->encoding_type = None;
 
     /* set IC & DC to 0 */
     IC = 0;
@@ -370,9 +374,11 @@ ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_ty
             }
             if (current_label->type == Extern) {
                 (*binArg)->param.encoding_type = External;
+                (*binArg)->param.data = 0;
                 *extern_show_list = addLabelNode(*extern_show_list, token, IC, Code);
             }
-            (*binArg)->param.data = current_label->place;
+            else
+                (*binArg)->param.data = current_label->place;
             break;
         case Register:
             (*binArg)->param.encoding_type = Absolute;
