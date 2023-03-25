@@ -31,7 +31,7 @@
 
 /* Symbols */
 #define COMMENT_CHAR ';'
-#define LINE_BREAK "\n"
+#define LINE_BREAK "\n\0"
 #define SPACE_SEP " \t\r"LINE_BREAK
 #define COMMA_SEP ","SPACE_SEP
 #define STRING_QUOTE '"'
@@ -42,8 +42,8 @@
 #define JMP_OPEN_BRACKET "("SPACE_SEP
 #define JMP_CLOSE_BRACKET ")"SPACE_SEP
 
-#define ONE_BIT_REPR '/'
-#define ZERO_BIT_REPR '.'
+#define ONE_BIT_REPR '1'
+#define ZERO_BIT_REPR '0'
 
 
 #define NUMBER_SYMBOL '#'

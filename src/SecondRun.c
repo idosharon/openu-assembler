@@ -25,6 +25,9 @@ int second_run(int IC, int DC,
     /* token pointer */
     char *token;
 
+    /* pointers to start and finish of string in .string*/
+    char* first_quote, *last_quote;
+
     /* labels, extern and entry */
     char *current_label_name = NULL;
     label_t *current_label = NULL;
@@ -118,9 +121,18 @@ int second_run(int IC, int DC,
                 }
             } else if (isStrEqual(token, STRING_SYMBOL)) {
                 token = strtok(NULL, SPACE_SEP);
-                if (token == NULL) {
+                if (token == NULL)
+                    continue;
+                first_quote = strchr(line, STRING_QUOTE);
+                last_quote = strrchr(line, STRING_QUOTE);
+                if (last_quote == NULL || first_quote == NULL || last_quote <= first_quote) {
                     continue;
                 }
+                if (strtok(last_quote+1,SPACE_SEP) != NULL)
+                    continue;
+
+                strncpy(token, first_quote, last_quote-first_quote);
+                token[last_quote-first_quote+1] = NULL_TERMINATOR;
                 if (token[0] != STRING_QUOTE || token[strlen(token) - 1] != STRING_QUOTE) {
                     continue;
                 }

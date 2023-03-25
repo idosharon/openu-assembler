@@ -6,6 +6,9 @@ int firstRun(FILE* file, char* base_file_name) {
     size_t command_index = 0;
     char* token;
 
+    /* pointers to start and finish of string in .string*/
+    char* first_quote, *last_quote;
+
     /* create list for labels */
     node_t* label_list = NULL;
 
@@ -83,11 +86,25 @@ int firstRun(FILE* file, char* base_file_name) {
             }
             else if (isStrEqual(token, STRING_SYMBOL)) {
                 token = strtok(NULL,SPACE_SEP);
+                first_quote = strchr(line, STRING_QUOTE);
+                last_quote = strrchr(line, STRING_QUOTE);
                 if (token == NULL) {
                     line_error(STRING_MISSING_ARGUMENT, base_file_name,line_number);
                     error_flag = true;
                     continue;
                 }
+                if (last_quote == NULL || first_quote == NULL || last_quote <= first_quote) {
+                    line_error(STRING_MISSING_QUOTE, base_file_name, line_number);
+                    error_flag = true;
+                    continue;
+                }
+                if (strtok(last_quote+1,SPACE_SEP) != NULL) {
+                    line_error(STRING_SYNTAX_ERROR, base_file_name,line_number);
+                    error_flag = true;
+                    continue;
+                }
+                strncpy(token, first_quote, last_quote-first_quote);
+                token[last_quote-first_quote+1] = NULL_TERMINATOR;
                 if (token[0] != STRING_QUOTE || token[strlen(token)-1] != STRING_QUOTE) {
                     line_error(STRING_SYNTAX_ERROR, base_file_name,line_number);
                     error_flag = true;

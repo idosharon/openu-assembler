@@ -27,7 +27,8 @@ const char* ERRORS[] = {
         "String missing argument",
         "String syntax error",
         "Parameter value out of range",
-        "Missing code after label"
+        "Missing code after label",
+        "String missing quote",
 
 };
 

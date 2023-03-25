@@ -36,6 +36,7 @@ typedef enum {
     STRING_SYNTAX_ERROR,
     PARAM_VALUE_OUT_OF_RANGE,
     MISSING_CODE_AFTER_LABEL,
+    STRING_MISSING_QUOTE,
 } ERROR;
 
 extern const char* ERRORS[];
