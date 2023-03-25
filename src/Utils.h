@@ -18,8 +18,6 @@
 #define IS_EXTERN_SYMBOL(token) (isStrEqual(token, EXTERN_SYMBOL))
 #define IS_ENTRY_SYMBOL(token) (isStrEqual(token, ENTRY_SYMBOL))
 
-#define resetArg(arg) (arg).type = None; (arg).value = NULL
-
 bool is_number(char*);
 
 int find_command(char*);

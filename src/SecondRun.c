@@ -36,7 +36,6 @@ int second_run(int IC, int DC,
 
     /* encoded word */
     word* encoded_word = (word*) calloc(sizeof(word), 1);
-    argument_t arg1 = EMPTY_ARGUMENT, arg2 = EMPTY_ARGUMENT;
 
     bool label_flag = false;
 
@@ -44,12 +43,14 @@ int second_run(int IC, int DC,
     ERROR error_code = NO_ERROR;
 
     int data, i = 0;
+    int offset = 0;
+    command_t command;
 
     /* command & data objects */
     binary_command binaryCommand = {0, 0, 0, 0, 0, 0};
     binary_data binaryData = {0};
-    binary_param* binaryFirstParam = (binary_param*)calloc(sizeof(binary_param), 1);
-    binary_param* binarySecondParam = (binary_param*)calloc(sizeof(binary_param), 1);
+    binary_param* binaryFirstParam = (binary_param*) calloc(sizeof(binary_param), 1);
+    binary_param* binarySecondParam = (binary_param*) calloc(sizeof(binary_param), 1);
 
     binarySecondParam->data = 0;
     binarySecondParam->encoding_type = None;
@@ -166,16 +167,12 @@ int second_run(int IC, int DC,
                 }
 
                 /* check command type (group) */
-                int offset = 0;
-                command_t command = commands[command_index];
+                offset = 0;
+                command = commands[command_index];
 
                 bool is_jump = (!command.arg1_optional_types) && (command.arg2_optional_types & Jump);
 
                 arg_type source_type = None, dest_type = None;
-
-                /* reset args */
-                resetArg(arg1);
-                resetArg(arg2);
 
                 /* encoding type always absolute */
                 binaryCommand.encoding_type = Absolute;
@@ -203,13 +200,9 @@ int second_run(int IC, int DC,
                         /* if arg type is valid, encode it */
                         binaryCommand.src_type = encodeArgumentType(source_type);
 
-                        /* save current token and type in argument 1 */
-                        arg1.value = token;
-                        arg1.type = source_type;
 
                         /* get encoded word of argument */
-                        if ((error_code = encodeArgumentToWord(token, (word **) &binaryFirstParam, -1, source_type,
-                                                               label_list, extern_list, &extern_show_list, IC+offset))) {
+                        if ((error_code = encodeArgumentToWord(token, source_type, (word **) &binaryFirstParam, -1, label_list, extern_list))) {
                             if (error_code == DATA_OUT_OF_RANGE)
                                 line_warning(error_code, base_file_name, line_number);
                             else {
@@ -219,6 +212,9 @@ int second_run(int IC, int DC,
                             }
                         }
 
+                        if(binaryFirstParam->encoding_type == External) {
+                            extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
+                        }
                         /* encode word */
                         code_image[IC+offset].param = *binaryFirstParam;
 
@@ -233,28 +229,22 @@ int second_run(int IC, int DC,
                 if (command.arg2_optional_types) {
                     /* continue to second arg */
                     offset++;
-                    token = strtok(NULL,(is_jump) ? "\n\0" : COMMA_SEP);
-                    arg2.value = strdup(token);
-                    is_jump = (getJumpParamsLength(arg2.value) != -1);
-                    if (is_jump)
-                        token = strtok(token,  JMP_OPEN_BRACKET);
+                    token = strtok(NULL, (source_type == None ? LINE_BREAK : COMMA_SEP));
+
                     if (token) {
                         if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
                             continue;
                         }
 
                         /* if arg type is valid, encode it */
-                        if (is_jump)
-                            binaryCommand.dest_type = encodeArgumentType(Jump);
-                        else
-                            binaryCommand.dest_type = encodeArgumentType(dest_type);
-
-                        /* save current token and type in argument 2 */
-                        arg2.type = dest_type;
+                        binaryCommand.dest_type = encodeArgumentType(dest_type);
+                        if(dest_type == Jump) {
+                            token = strtok(token, OPEN_BRACKET);
+                        }
 
                         /* get encoded word of argument */
-                        if ((error_code = encodeArgumentToWord(token, (word **) &binarySecondParam, (source_type == Register ? find_register(arg1.value) : -1), dest_type,
-                                                               label_list, extern_list, &extern_show_list, IC+offset))) {
+                        if ((error_code = encodeArgumentToWord(token, (dest_type == Jump ? Direct : dest_type), (word**) &binarySecondParam,
+                                                               (source_type == Register ? ((binary_two_registers*) binaryFirstParam)->src_register : 0), label_list, extern_list))) {
                             if (error_code == DATA_OUT_OF_RANGE)
                                 line_warning(error_code, base_file_name, line_number);
                             else {
@@ -264,6 +254,10 @@ int second_run(int IC, int DC,
                             }
                         }
 
+                        if(binarySecondParam->encoding_type == External) {
+                            extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
+                        }
+
                         /* encode word */
                         if (source_type == Register && dest_type == Register) {
                             offset--;
@@ -271,15 +265,15 @@ int second_run(int IC, int DC,
 
                         code_image[IC+offset].param = *binarySecondParam;
 
-                        if (is_jump) {
-                            binary_param* binaryJumpFirstParam = (binary_param*)calloc(sizeof(binary_param), 1);
-                            binary_param* binaryJumpSecondParam = (binary_param*)calloc(sizeof(binary_param), 1);
+                        if (dest_type == Jump) {
+                            binary_param* binaryJumpFirstParam = (binary_param*) calloc(sizeof(binary_param), 1);
+                            binary_param* binaryJumpSecondParam = (binary_param*) calloc(sizeof(binary_param), 1);
 
                             arg_type jmpFirstParmType = None, jmpSecondParmType = None;
 
                             offset++;
-                            token = strtok(arg2.value, JMP_OPEN_BRACKET);
                             token = strtok(NULL, COMMA_SEP);
+
                             if (token) {
                                 if ((jmpFirstParmType = get_arg_type(token, Immediate | Direct | Register)) == None) {
                                     continue;
@@ -287,15 +281,8 @@ int second_run(int IC, int DC,
                                 /* if arg type is valid, encode it */
                                 binaryCommand.second_par_type = encodeArgumentType(jmpFirstParmType);
 
-                                /* save current token and type in argument 1 */
-                                arg1.value = token;
-                                arg1.type = jmpFirstParmType;
-
                                 /* get encoded word of argument */
-                                if ((error_code = encodeArgumentToWord(token, (word **) &binaryJumpFirstParam, -1,
-                                                                       jmpFirstParmType,
-                                                                       label_list, extern_list, &extern_show_list,
-                                                                       IC + offset))) {
+                                if ((error_code = encodeArgumentToWord(token, jmpFirstParmType, (word **) &binaryJumpFirstParam, -1, label_list, extern_list))) {
                                     if (error_code == DATA_OUT_OF_RANGE)
                                         line_warning(error_code, base_file_name, line_number);
                                     else {
@@ -305,14 +292,20 @@ int second_run(int IC, int DC,
                                     }
                                 }
 
+                                if(binaryJumpFirstParam->encoding_type == External) {
+                                    extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
+                                }
+
                                 /* encode word */
                                 code_image[IC + offset].param = *binaryJumpFirstParam;
                             }
                             else {
                                 continue;
                             }
+
                             offset++;
                             token = strtok(NULL, JMP_CLOSE_BRACKET);
+
                             if (token) {
                                 if ((jmpSecondParmType = get_arg_type(token, Immediate | Direct | Register)) == None) {
                                     continue;
@@ -321,14 +314,18 @@ int second_run(int IC, int DC,
                                 binaryCommand.first_par_type = encodeArgumentType(jmpSecondParmType);
 
                                 /* get encoded word of argument */
-                                if ((error_code = encodeArgumentToWord(token, (word **) &binaryJumpSecondParam, (jmpFirstParmType == Register ? find_register(arg1.value) : 0), jmpSecondParmType,
-                                                                       label_list, extern_list, &extern_show_list, IC+offset))) {
+                                if ((error_code = encodeArgumentToWord(token, jmpSecondParmType, (word **) &binaryJumpSecondParam,
+                                                                       (jmpFirstParmType == Register ? ((binary_two_registers*) binaryJumpFirstParam)->src_register : 0), label_list, extern_list))) {
                                     if (error_code == DATA_OUT_OF_RANGE)
                                         line_warning(error_code, base_file_name, line_number);
                                     else {
                                         error_flag = true;
                                         line_error(error_code, base_file_name, line_number);
                                     }
+                                }
+
+                                if(binaryJumpSecondParam->encoding_type == External) {
+                                    extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
                                 }
 
                                 /* encode word */
@@ -393,17 +390,11 @@ int second_run(int IC, int DC,
     return error_flag;
 }
 
-ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_type optional_types,
-                    node_t* label_list, node_t* extern_list, node_t** extern_show_list, int IC) {
-    arg_type current_type;
+ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg, int prev_register, node_t* label_list, node_t* extern_list) {
     label_t* current_label;
     int data;
 
-    if ((current_type = get_arg_type(token, optional_types)) == None) {
-        return INVALID_ARG_TYPE;
-    }
-
-    switch (current_type) {
+    switch (current_arg_type) {
         case Immediate:
             token++;
             (*binArg)->param.encoding_type = Absolute;
@@ -421,7 +412,6 @@ ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_ty
             if (current_label->type == Extern) {
                 (*binArg)->param.encoding_type = External;
                 (*binArg)->param.data = 0;
-                *extern_show_list = addLabelNode(*extern_show_list, token, IC, Code);
             }
             else
                 (*binArg)->param.data = current_label->place;

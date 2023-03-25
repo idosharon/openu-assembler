@@ -12,7 +12,7 @@ void createObjFile(int, word*, int, word*, char*);
 void createEntryFile(node_t*, char*);
 void createExternFile(node_t*, char*);
 
-ERROR encodeArgumentToWord(char*, word**, int, arg_type, node_t*, node_t*, node_t**, int);
+ERROR encodeArgumentToWord(char*, arg_type, word**, int, node_t*, node_t*);
 
 bool checkForUndefinedEntries(node_t*, node_t*, char*);
 

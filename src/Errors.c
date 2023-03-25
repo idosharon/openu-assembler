@@ -29,13 +29,12 @@ const char* ERRORS[] = {
         "Parameter value out of range",
         "Missing code after label",
         "String missing quote",
-
+        "Data out of range"
 };
 
 const char* WARNINGS[] = {
         "No file was specified",
         "Macro syntax warning",
         "Label definition before extern",
-        "Label definition before entry",
-        "Data out of range"
+        "Label definition before entry"
 };

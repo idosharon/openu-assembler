@@ -89,31 +89,6 @@ int getJumpParamsLength(char* params_str) {
 
     return length;
 }
-/*
-    params_str = strdup(params_str);
-
-    if(!params_str) return -1;
-
-
-
-
-    params_str = strtok(params_str, JMP_OPEN_BRACKET);
-    if(!params_str || !isValidLabelFormat(params_str)) return -1;
-    length++;
-
-    params_str = strtok(NULL, COMMA_SEP);
-    if(!params_str || (first_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
-    length++;
-
-    params_str = strtok(NULL, JMP_CLOSE_BRACKET);
-    if(!params_str || (second_param_type = get_arg_type(params_str, Register | Immediate | Direct)) == None) return -1;
-    length++;
-
-    if(first_param_type == Register && second_param_type == Register) length--;
-
-    return length;
-}
-*/
 
 arg_type get_arg_type(char* token, arg_type types) {
     if(find_command(token) != -1) {
@@ -130,7 +105,7 @@ arg_type get_arg_type(char* token, arg_type types) {
         return Jump;
     } else if((types & Register) && (find_register(token) != -1)) {
         return Register;
-    } else if((types & Direct) && (isValidLabelFormat(token))) {
+    }  else if((types & Direct) && (isValidLabelFormat(token))) {
         return Direct;
     }
 

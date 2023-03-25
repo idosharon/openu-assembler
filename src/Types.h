@@ -31,11 +31,6 @@ typedef enum {
     Register = 8    /* 1000 = 3 */
 } arg_type;
 
-typedef struct {
-    char* value;
-    arg_type type;
-} argument_t;
-
 /* node type */
 typedef struct {
     void* data;
