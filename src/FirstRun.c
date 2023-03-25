@@ -190,13 +190,13 @@ int firstRun(FILE* file, char* base_file_name) {
             }
         }
         else {
-            /* add label if needed */
-            if (label_flag) {
-                label_list = addLabelNode(label_list, current_label, IC, Code);
-            }
-
             /* get current command index */
             if ((command_index = find_command(token)) != -1) {
+
+                /* add label if needed */
+                if (label_flag) {
+                    label_list = addLabelNode(label_list, current_label, IC, Code);
+                }
 
                 /* check command type (group) */
                 int command_length = 1;
