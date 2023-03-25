@@ -29,7 +29,8 @@ const char* ERRORS[] = {
         "Parameter value out of range",
         "Missing code after label",
         "String missing quote",
-        "Data out of range"
+        "Data out of range",
+        "Command or data instruction not found",
 };
 
 const char* WARNINGS[] = {

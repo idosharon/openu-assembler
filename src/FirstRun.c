@@ -220,11 +220,13 @@ int firstRun(FILE* file, char* base_file_name) {
                         if(!(source_type & command.arg1_optional_types)) {
                             line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
                             error_flag = true;
+                            continue;
                         } else {
                             command_length++;
                         }
                     } else {
                         line_error(TOO_FEW_ARGS, base_file_name, line_number);
+                        error_flag = true;
                         continue;
                     }
                 }
@@ -242,6 +244,7 @@ int firstRun(FILE* file, char* base_file_name) {
                         if (!(dest_type & command.arg2_optional_types)) {
                             line_error(INVALID_DEST_ARG, base_file_name, line_number);
                             error_flag = true;
+                            continue;
                         } else {
                             if(dest_type == Jump) {
                                 /* get jump params and check the length of overall command */
@@ -252,6 +255,7 @@ int firstRun(FILE* file, char* base_file_name) {
                         }
                     } else {
                         line_error(TOO_FEW_ARGS, base_file_name, line_number);
+                        error_flag = true;
                         continue;
                     }
 
@@ -259,6 +263,7 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 if(strtok(NULL, SPACE_SEP) != NULL) {
                     line_error(TOO_MANY_ARGS, base_file_name, line_number);
+                    error_flag = true;
                     continue;
                 }
 
@@ -269,7 +274,8 @@ int firstRun(FILE* file, char* base_file_name) {
                 IC += command_length;
                 /* printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length); */
             } else {
-                line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
+                line_error(COMMAND_OR_DATA_INSTRUCTION_NOT_FOUND, base_file_name, line_number);
+                error_flag = true;
                 continue;
             }
         }
