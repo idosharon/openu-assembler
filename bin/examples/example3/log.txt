@@ -1,0 +1,6 @@
+[info]: Successfully Loaded: example3\example3.as
+[info]: Created Pre Assembled file: example3\example3.am
+[info]: Successfully Loaded: example3\example3.am
+[info]: Finished first run: example3\example3
+[error]: Undefined label (file: example3\example3, line: 3)
+[info]: Finished second run: example3\example3

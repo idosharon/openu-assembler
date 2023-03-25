@@ -108,7 +108,6 @@ char* preAssemble(FILE* file, char* base_file_name) {
     /* free all variables */
     free_list(macro_list);
     free(line);
-    free(pre_assembled_file);
 
     return pre_assembled_file_name;
 }

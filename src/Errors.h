@@ -35,14 +35,15 @@ typedef enum {
     MISSING_CODE_AFTER_LABEL,
     STRING_MISSING_QUOTE,
     DATA_OUT_OF_RANGE,
-    COMMAND_OR_DATA_INSTRUCTION_NOT_FOUND
+    COMMAND_OR_DATA_INSTRUCTION_NOT_FOUND,
+    MEMORY_OVERFLOW
 } ERROR;
 
 extern const char* ERRORS[];
 
-#define error(error_index) (fprintf(stderr, "[error]: %s\n", ERRORS[error_index]))
-#define line_error(error_index, file_name, line) (fprintf(stderr, "[error]: %s (file: %s, line: %lu)\n", ERRORS[error_index], file_name, line))
-#define file_error(error_index, file_name) (fprintf(stderr, "[error]: %s (file: %s)\n", ERRORS[error_index], file_name))
+#define error(error_index) (printf("[error]: %s\n", ERRORS[error_index]))
+#define line_error(error_index, file_name, line) (printf("[error]: %s (file: %s, line: %lu)\n", ERRORS[error_index], file_name, line))
+#define file_error(error_index, file_name) (printf("[error]: %s (file: %s)\n", ERRORS[error_index], file_name))
 
 /* warning messages */
 typedef enum {
@@ -54,9 +55,9 @@ typedef enum {
 
 extern const char* WARNINGS[];
 
-#define warn(warning) (fprintf(stderr, "[warning]: %s\n", WARNINGS[warning]))
-#define line_warning(warning_index, file_name, line) (fprintf(stderr, "[warning]: %s (file: %s, line: %lu)\n", WARNINGS[warning_index], file_name, line))
-#define file_warning(warning_index, file_name) (fprintf(stderr, "[warning]: %s (file: %s)\n", WARNINGS[warning_index], file_name))
+#define warn(warning) (printf("[warning]: %s\n", WARNINGS[warning]))
+#define line_warning(warning_index, file_name, line) (printf("[warning]: %s (file: %s, line: %lu)\n", WARNINGS[warning_index], file_name, line))
+#define file_warning(warning_index, file_name) (printf("[warning]: %s (file: %s)\n", WARNINGS[warning_index], file_name))
 
 
 #endif

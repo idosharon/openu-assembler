@@ -1,0 +1,6 @@
+[info]: Successfully Loaded: example1\example1.as
+[info]: Created Pre Assembled file: example1\example1.am
+[info]: Successfully Loaded: example1\example1.am
+[info]: Finished first run: example1\example1
+No errors found, creating output files: example1\example1
+[info]: Finished second run: example1\example1

@@ -28,6 +28,7 @@ const char* ERRORS[] = {
         "String missing quote",
         "Data out of range",
         "Command or data instruction not found",
+        "Memory overflow - file too large",
 };
 
 const char* WARNINGS[] = {
