@@ -1,5 +1,24 @@
+/*
+ * File:        PreAssembler.c
+ * Type:        Source file
+ * Description: Pre Assembler module, handles macro definitions.
+ *              Creates a new file with the macros expanded X.am file.
+ *
+ * Authors: Ido Sharon (215774142)
+ *          Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #include "PreAssembler.h"
 
+/* Function: preAssemble
+ * Description: pre-assemble the file, list all its macros and expand them in a new file with .am extension.
+ * Input: file - pointer to file to pre-assemble,
+ *        base_file_name - base file name (excluding extension, used for output file name with new .am extension)
+ * Output: output_file_name - name of the output file with the pre-assembled file (with .am extension)
+ * Example: preAssemble(file, "test") -> "test.am"
+ */
 char* preAssemble(FILE* file, char* base_file_name) {
     /* open pre assembler file */
     FILE* pre_assembled_file;
@@ -92,17 +111,37 @@ char* preAssemble(FILE* file, char* base_file_name) {
     return output_file_name;
 }
 
+/* Function: findMacro
+ * Description: find a macro in a given list of macros
+ * Input: name - char pointer to the name of the macro to find
+ *        head - pointer to the head of the list of macros
+ * Output: pointer to the macro if found, NULL otherwise
+ * Example: macro_list: MACRO1 -> MACRO2 -> MACRO3
+ *          findMacro("MACRO2", macro_list) -> pointer to MACRO2 node as macro_t*
+ */
 macro_t* findMacro(char* name, node_t* head) {
+    /* current macro */
     macro_t* macro;
+    /* iterate over the given list until NULL */
     while(head != NULL) {
+        /* check if macro name is equal to the given name */
         if(isStrEqual((macro = (macro_t*) head->data)->name, name)) {
             return macro;
         }
-        head = (node_t *) head->next;
+        /* move to next node */
+        head = (node_t*) head->next;
     }
     return NULL;
 }
 
+/* Function: isValidMacroName
+ * Description: check if a given macro name is valid
+ * Input: macro_name - char pointer to the name of the macro to check
+ * Output: true if valid, false otherwise
+ * Example: isValidMacroName("MACRO1") -> true
+ *          isValidMacroName("MACRO_1") -> true
+ *          isValidMacroName("MACRO-1") -> false
+ */
 bool isValidMacroName(char* macro_name) {
     /* check if macro name is valid - only contains alphabetic and numbers */
     if (!isalpha(*macro_name))
