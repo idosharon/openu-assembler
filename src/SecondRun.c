@@ -61,6 +61,10 @@ int second_run(int IC, int DC,
     while (fgets(line, MAX_LINE_SIZE, file) != NULL) {
         /* increase line counter */
         line_number++;
+
+        label_flag = false;
+        current_label = NULL;
+
         /* split line into tokens */
         token = strtok(strdup(line), SPACE_SEP);
 
@@ -69,19 +73,12 @@ int second_run(int IC, int DC,
             if (isValidLabel(token)) {
                 current_label_name = strdup(token);
                 current_label_name[strlen(current_label_name) - 1] = NULL_TERMINATOR;
-                current_label = findLabel(current_label_name, label_list, extern_list, NULL);
-                if (current_label == NULL) {
-                    line_error(UNDEFINED_LABEL, base_file_name, line_number);
-                    error_flag = true;
-                    continue;
-                }
-                if (current_label->type == Extern) {
-                    line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number);
-                    error_flag = true;
-                    continue;
-                }
+                current_label = findLabel(current_label_name, extern_list, label_list, NULL);
                 label_flag = true;
                 token = strtok(NULL, SPACE_SEP);
+                if (token == NULL) {
+                    continue;
+                }
             } else {
                 continue;
             }
@@ -95,6 +92,12 @@ int second_run(int IC, int DC,
                     entry_show_list = addLabelNode(entry_show_list, current_label_name, DC, Data);
                 label_flag = false;
             }
+            if (current_label != NULL && current_label->type == Extern) {
+                line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number);
+                error_flag = true;
+                continue;
+            }
+
             /* check for .data symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
                 /* encode all data */
@@ -102,7 +105,11 @@ int second_run(int IC, int DC,
                     if (is_number(token)) {
                         /* TODO: calculate if number if out of range */
                         /* TODO: check the sign of the number (+-) and calculate if negative */
-                        binaryData.data = atoi(token);
+                        data = atoi(token);
+                        if (data > MAX_DATA_VALUE || data < MIN_DATA_VALUE) {
+                            line_warning(DATA_OUT_OF_RANGE, base_file_name, line_number);
+                        }
+                        binaryData.data = data;
                         memory_image[DC].data = binaryData;
                         DC++;
                     } else {
@@ -139,6 +146,11 @@ int second_run(int IC, int DC,
                     if (findLabel(current_label_name, entry_list, NULL) != NULL)
                         entry_show_list = addLabelNode(entry_show_list, current_label_name, IC, Code);
                     label_flag = false;
+                }
+                if (current_label != NULL && current_label->type == Extern) {
+                    line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number);
+                    error_flag = true;
+                    continue;
                 }
 
                 /* check command type (group) */
@@ -186,8 +198,13 @@ int second_run(int IC, int DC,
                         /* get encoded word of argument */
                         if ((error_code = encodeArgumentToWord(token, (word **) &binaryFirstParam, -1, source_type,
                                                                label_list, extern_list, &extern_show_list, IC+offset))) {
-                            line_error(error_code, base_file_name, line_number);
-                            error_flag = true;
+                            if (error_code == DATA_OUT_OF_RANGE)
+                                line_warning(error_code, base_file_name, line_number);
+                            else {
+                                error_flag = true;
+                                line_error(error_code, base_file_name, line_number);
+                                continue;
+                            }
                         }
 
                         /* encode word */
@@ -204,15 +221,15 @@ int second_run(int IC, int DC,
                 if (command.arg2_optional_types) {
                     /* continue to second arg */
                     offset++;
-                    token = strtok(NULL,SPACE_SEP);
+                    token = strtok(NULL,(is_jump) ? "\n\0" : COMMA_SEP);
                     arg2.value = strdup(token);
-                    token = strtok(token, is_jump ? JMP_OPEN_BRACKET : COMMA_SEP);
+                    is_jump = (getJumpParamsLength(arg2.value) != -1);
+                    if (is_jump)
+                        token = strtok(token,  JMP_OPEN_BRACKET);
                     if (token) {
                         if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
                             continue;
                         }
-
-                        is_jump = (getJumpParamsLength(arg2.value) != -1);
 
                         /* if arg type is valid, encode it */
                         if (is_jump)
@@ -226,8 +243,13 @@ int second_run(int IC, int DC,
                         /* get encoded word of argument */
                         if ((error_code = encodeArgumentToWord(token, (word **) &binarySecondParam, (source_type == Register ? find_register(arg1.value) : -1), dest_type,
                                                                label_list, extern_list, &extern_show_list, IC+offset))) {
-                            line_error(error_code, base_file_name, line_number);
-                            error_flag = true;
+                            if (error_code == DATA_OUT_OF_RANGE)
+                                line_warning(error_code, base_file_name, line_number);
+                            else {
+                                error_flag = true;
+                                line_error(error_code, base_file_name, line_number);
+                                continue;
+                            }
                         }
 
                         /* encode word */
@@ -262,8 +284,13 @@ int second_run(int IC, int DC,
                                                                        jmpFirstParmType,
                                                                        label_list, extern_list, &extern_show_list,
                                                                        IC + offset))) {
-                                    line_error(error_code, base_file_name, line_number);
-                                    error_flag = true;
+                                    if (error_code == DATA_OUT_OF_RANGE)
+                                        line_warning(error_code, base_file_name, line_number);
+                                    else {
+                                        error_flag = true;
+                                        line_error(error_code, base_file_name, line_number);
+                                        continue;
+                                    }
                                 }
 
                                 /* encode word */
@@ -284,8 +311,12 @@ int second_run(int IC, int DC,
                                 /* get encoded word of argument */
                                 if ((error_code = encodeArgumentToWord(token, (word **) &binaryJumpSecondParam, (jmpFirstParmType == Register ? find_register(arg1.value) : 0), jmpSecondParmType,
                                                                        label_list, extern_list, &extern_show_list, IC+offset))) {
-                                    line_error(error_code, base_file_name, line_number);
-                                    error_flag = true;
+                                    if (error_code == DATA_OUT_OF_RANGE)
+                                        line_warning(error_code, base_file_name, line_number);
+                                    else {
+                                        error_flag = true;
+                                        line_error(error_code, base_file_name, line_number);
+                                    }
                                 }
 
                                 /* encode word */
@@ -316,10 +347,8 @@ int second_run(int IC, int DC,
 
 
                /* printf("\t%lu command: %s length: %d\n", line_number, command.name, offset + 1); */
-            } else {
-                line_error(COMMAND_NOT_FOUND, base_file_name, line_number);
+            } else
                 continue;
-            }
         }
     }
 
@@ -356,6 +385,7 @@ ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_ty
                     node_t* label_list, node_t* extern_list, node_t** extern_show_list, int IC) {
     arg_type current_type;
     label_t* current_label;
+    int data;
 
     if ((current_type = get_arg_type(token, optional_types)) == None) {
         return INVALID_ARG_TYPE;
@@ -365,11 +395,15 @@ ERROR encodeArgumentToWord(char* token, word** binArg, int prev_register, arg_ty
         case Immediate:
             token++;
             (*binArg)->param.encoding_type = Absolute;
-            (*binArg)->param.data = atoi(token);
+            data = atoi(token);
+            (*binArg)->param.data = data;
+            if (data > MAX_PARAM_VALUE || data < MIN_PARAM_VALUE) {
+                return DATA_OUT_OF_RANGE;
+            }
             break;
         case Direct:
             (*binArg)->param.encoding_type = Relocatable;
-            if ((current_label = findLabel(token, label_list, extern_list)) == NULL) {
+            if ((current_label = findLabel(token, label_list, extern_list, NULL)) == NULL) {
                 return UNDEFINED_LABEL;
             }
             if (current_label->type == Extern) {

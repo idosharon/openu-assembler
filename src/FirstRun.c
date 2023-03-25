@@ -41,6 +41,12 @@ int firstRun(FILE* file, char* base_file_name) {
                 current_label[strlen(current_label)-1] = NULL_TERMINATOR;
                 token = strtok(NULL, SPACE_SEP);
 
+                if (token == NULL) {
+                    line_error(MISSING_CODE_AFTER_LABEL, base_file_name, line_number);
+                    error_flag = true;
+                    continue;
+                }
+
                 /* check if label exists in future labels */
                 if (findLabelInList(current_label, label_list)) {
                     line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number);
@@ -189,7 +195,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     token = strtok(NULL, COMMA_SEP);
                     if(token) {
                         if((source_type = get_arg_type(token, command.arg1_optional_types)) == None) {
-                            line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                            line_error(INVALID_SOURCE_ARG, base_file_name, line_number);
                             error_flag = true;
                             continue;
                         }
@@ -212,7 +218,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     if(token) {
                         /* ok lets check for Jump type */
                         if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
-                            line_error(COMMAND_SYNTAX_ERROR, base_file_name, line_number);
+                            line_error(INVALID_DEST_ARG, base_file_name, line_number);
                             error_flag = true;
                             continue;
                         }

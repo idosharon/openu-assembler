@@ -19,6 +19,10 @@
 #define MEMORY_SIZE (256 * WORD_SIZE)
 #define START_ADD 100
 #define OPCODE_SIZE 4
+#define MAX_DATA_VALUE (8191)
+#define MIN_DATA_VALUE (-8192)
+#define MAX_PARAM_VALUE (2047)
+#define MIN_PARAM_VALUE (-2048)
 
 /* Registers consts */
 #define REGISTER_SIZE WORD_SIZE
@@ -38,8 +42,8 @@
 #define JMP_OPEN_BRACKET "("SPACE_SEP
 #define JMP_CLOSE_BRACKET ")"SPACE_SEP
 
-#define ONE_BIT_REPR '1'
-#define ZERO_BIT_REPR '0'
+#define ONE_BIT_REPR '/'
+#define ZERO_BIT_REPR '.'
 
 
 #define NUMBER_SYMBOL '#'

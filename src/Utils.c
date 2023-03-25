@@ -17,9 +17,12 @@ bool is_number(char* str) {
 
 bool isValidLabel(char* label_name) {
     /* check if label name is valid - only contains alphabetic and numbers */
-    if (!isValidLabelFormat(label_name)
-        || find_register(label_name) != -1
-        || find_command(label_name) != -1)
+    char* label_name_copy = strdup(label_name);
+    if (!isValidLabelFormat(label_name_copy))
+        return false;
+    label_name_copy[strlen(label_name_copy) - 1] = '\0';
+    if (find_register(label_name_copy) != -1
+        || find_command(label_name_copy) != -1)
         return false;
     return true;
 }

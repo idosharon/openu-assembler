@@ -26,6 +26,8 @@ const char* ERRORS[] = {
         "Conflict local and external label",
         "String missing argument",
         "String syntax error",
+        "Parameter value out of range",
+        "Missing code after label"
 
 };
 
@@ -33,5 +35,6 @@ const char* WARNINGS[] = {
         "No file was specified",
         "Macro syntax warning",
         "Label definition before extern",
-        "Label definition before entry"
+        "Label definition before entry",
+        "Data out of range"
 };
