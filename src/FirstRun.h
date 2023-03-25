@@ -10,8 +10,6 @@ int firstRun(FILE*, char*);
 
 char* getBinaryCommand(char*, char*, int);
 
-bool deleteLabel(char*, node_t**);
-
 #endif
 
 

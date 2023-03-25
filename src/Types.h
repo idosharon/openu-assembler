@@ -1,13 +1,26 @@
+/* File:   Types.h
+ * Type:   Header file
+ * Description: Types of variables used in the assembler.
+ * Authors: Ido Sharon (215774142)
+ *          Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #ifndef TYPES_H
 #define TYPES_H
 
 #include "Consts.h"
 #include <ctype.h>
 
-/* define bool */
+/* Type: bool - enum
+ * Description: Boolean type.
+ */
 typedef enum { false, true } bool;
 
-/* label type */
+/* Type: label_type - enum
+ * Description: All the possible types of labels.
+ * */
 typedef enum {
     Code,
     Data,
@@ -43,7 +56,7 @@ typedef struct {
     label_type type;
 } label_t;
 
-/* command */
+
 typedef struct {
     char* name;
 

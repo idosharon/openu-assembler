@@ -1,14 +1,35 @@
+/* File: SecondRun.c
+ * Type: Source file
+ * Description: Second run module, handles the second run of the assembler.
+ *              if no errors found also in first run - creates the object, entry and extern files.
+ *              if errors found in first or second run - returns error flag and reports all errors to stdout.
+ * Authors: Ido Sharon (215774142)
+ *         Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #include "SecondRun.h"
 
-
-int second_run(int IC, int DC,
+/* Function: second_run
+ * Description: second run of the assembler, creates the object, entry and extern files and reports errors that couldn't find in first run to stdout.
+ * Input: IC - instruction counter (number of words in code image),
+ *        DC - data counter (number of words in memory image),
+ *        label_list - list of all labels (including data labels),
+ *        extern_list - list of all extern labels (all labels that are used as operands in .extern),
+ *        entry_list - list of all entry labels (all labels that are used as operands in .entry),
+ *        error_flag - flag indicating if errors were found in first run (error flag from first run),
+ *        file - pointer to file to assemble (file pointer to .am (after pre-assembler) file),
+ *        base_file_name - base file name (excluding extension, used for output file name with new .o, .ent, .ext extensions)
+ * Output: 0 if no errors found, 1 if errors found
+ */
+int second_run(size_t IC, size_t DC,
                node_t* label_list,
                node_t* extern_list,
                node_t* entry_list,
                bool error_flag,
                FILE* file,
                char* base_file_name) {
-
     /* create memory images */
     word *code_image = (word *) malloc((IC - START_ADD) * sizeof(word));
     word *memory_image = (word *) malloc((DC - IC) * sizeof(word));
@@ -17,45 +38,41 @@ int second_run(int IC, int DC,
     node_t *extern_show_list = NULL;
     node_t *entry_show_list = NULL;
 
-    /* line buffer */
+    /* line related variables */
     char *line = (char *) malloc(MAX_LINE_SIZE * sizeof(char));
     size_t line_number = 0;
-    size_t command_index = 0;
 
     /* token pointer */
     char *token;
 
-    /* pointers to start and finish of string in .string*/
-    char* first_quote, *last_quote;
-
     /* labels, extern and entry */
     char *current_label_name = NULL;
     label_t *current_label = NULL;
-    label_t *current_entry = NULL;
-    label_t *current_extern = NULL;
-
-    /* encoded word */
-    word* encoded_word = (word*) calloc(sizeof(word), 1);
-
-    bool label_flag = false;
+    bool label_flag;
 
     /* current error code */
-    ERROR error_code = NO_ERROR;
+    ERROR error_code;
 
-    int data, i = 0;
-    int offset = 0;
-    command_t command;
+    /* command related variables */
+    int command_offset;
+    command_t current_command;
+    size_t command_index = 0;
+    arg_type source_type = None, dest_type = None;
 
-    /* command & data objects */
+    /* .data/.string related variables */
+    int current_data_value;
+    /* pointers to start and finish of string in .string*/
+    char *first_quote, *last_quote;
+
+    /* current_command & current_data_value objects */
     binary_command binaryCommand = {0, 0, 0, 0, 0, 0};
     binary_data binaryData = {0};
     binary_param* binaryFirstParam = (binary_param*) calloc(sizeof(binary_param), 1);
     binary_param* binarySecondParam = (binary_param*) calloc(sizeof(binary_param), 1);
 
-    binarySecondParam->data = 0;
-    binarySecondParam->encoding_type = None;
-    binaryFirstParam->data = 0;
-    binaryFirstParam->encoding_type = None;
+    /* reset parameters */
+    resetParam(binaryFirstParam);
+    resetParam(binarySecondParam);
 
     /* set IC & DC to 0 */
     IC = 0;
@@ -66,6 +83,7 @@ int second_run(int IC, int DC,
         /* increase line counter */
         line_number++;
 
+        /* reset label flag & current label pointer */
         label_flag = false;
         current_label = NULL;
 
@@ -89,7 +107,6 @@ int second_run(int IC, int DC,
         }
         /* check all symbol types */
         if (IS_DATA_SYMBOL(token)) {
-
             /* if label is type .entry, add to entry show list */
             if (label_flag) {
                 if (findLabel(current_label_name, entry_list, NULL) != NULL)
@@ -102,18 +119,16 @@ int second_run(int IC, int DC,
                 continue;
             }
 
-            /* check for .data symbol */
+            /* check for .current_data_value symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
-                /* encode all data */
+                /* encode all current_data_value */
                 while ((token = strtok(NULL, COMMA_SEP)) != NULL) {
                     if (is_number(token)) {
-                        /* TODO: calculate if number if out of range */
-                        /* TODO: check the sign of the number (+-) and calculate if negative */
-                        data = atoi(token);
-                        if (data > MAX_DATA_VALUE || data < MIN_DATA_VALUE) {
+                        current_data_value = atoi(token);
+                        if (current_data_value > MAX_DATA_VALUE || current_data_value < MIN_DATA_VALUE) {
                             line_warning(DATA_OUT_OF_RANGE, base_file_name, line_number);
                         }
-                        binaryData.data = data;
+                        binaryData.data = current_data_value;
                         memory_image[DC].data = binaryData;
                         DC++;
                     } else {
@@ -152,7 +167,7 @@ int second_run(int IC, int DC,
         } else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
             continue;
         } else {
-            /* get current command index */
+            /* get current current_command index */
             if ((command_index = find_command(token)) != ERROR_CODE) {
                 /* if label is type .entry, add to entry show list */
                 if (label_flag) {
@@ -166,13 +181,9 @@ int second_run(int IC, int DC,
                     continue;
                 }
 
-                /* check command type (group) */
-                offset = 0;
-                command = commands[command_index];
-
-                bool is_jump = (!command.arg1_optional_types) && (command.arg2_optional_types & Jump);
-
-                arg_type source_type = None, dest_type = None;
+                /* check current_command type (group) */
+                command_offset = 0;
+                current_command = commands[command_index];
 
                 /* encoding type always absolute */
                 binaryCommand.encoding_type = Absolute;
@@ -188,13 +199,13 @@ int second_run(int IC, int DC,
                 binaryCommand.opcode = command_index;
 
                 /* if expecting first arg */
-                if (command.arg1_optional_types) {
+                if (current_command.arg1_optional_types) {
                     /* continue to first arg */
-                    offset++;
+                    command_offset++;
                     token = strtok(NULL, COMMA_SEP);
 
                     if (token) {
-                        if ((source_type = get_arg_type(token, command.arg1_optional_types)) == None) {
+                        if ((source_type = get_arg_type(token, current_command.arg1_optional_types)) == None) {
                             continue;
                         }
                         /* if arg type is valid, encode it */
@@ -213,10 +224,10 @@ int second_run(int IC, int DC,
                         }
 
                         if(binaryFirstParam->encoding_type == External) {
-                            extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
+                            extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                         }
                         /* encode word */
-                        code_image[IC+offset].param = *binaryFirstParam;
+                        code_image[IC + command_offset].param = *binaryFirstParam;
 
 
                     } else {
@@ -226,13 +237,13 @@ int second_run(int IC, int DC,
                 }
 
                 /* if expecting 2 args, check if there is a second arg */
-                if (command.arg2_optional_types) {
+                if (current_command.arg2_optional_types) {
                     /* continue to second arg */
-                    offset++;
+                    command_offset++;
                     token = strtok(NULL, (source_type == None ? LINE_BREAK : COMMA_SEP));
 
                     if (token) {
-                        if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
+                        if ((dest_type = get_arg_type(token, current_command.arg2_optional_types)) == None) {
                             continue;
                         }
 
@@ -255,15 +266,15 @@ int second_run(int IC, int DC,
                         }
 
                         if(binarySecondParam->encoding_type == External) {
-                            extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
+                            extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                         }
 
                         /* encode word */
                         if (source_type == Register && dest_type == Register) {
-                            offset--;
+                            command_offset--;
                         }
 
-                        code_image[IC+offset].param = *binarySecondParam;
+                        code_image[IC + command_offset].param = *binarySecondParam;
 
                         if (dest_type == Jump) {
                             binary_param* binaryJumpFirstParam = (binary_param*) calloc(sizeof(binary_param), 1);
@@ -271,7 +282,7 @@ int second_run(int IC, int DC,
 
                             arg_type jmpFirstParmType = None, jmpSecondParmType = None;
 
-                            offset++;
+                            command_offset++;
                             token = strtok(NULL, COMMA_SEP);
 
                             if (token) {
@@ -293,17 +304,17 @@ int second_run(int IC, int DC,
                                 }
 
                                 if(binaryJumpFirstParam->encoding_type == External) {
-                                    extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
+                                    extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                                 }
 
                                 /* encode word */
-                                code_image[IC + offset].param = *binaryJumpFirstParam;
+                                code_image[IC + command_offset].param = *binaryJumpFirstParam;
                             }
                             else {
                                 continue;
                             }
 
-                            offset++;
+                            command_offset++;
                             token = strtok(NULL, JMP_CLOSE_BRACKET);
 
                             if (token) {
@@ -325,16 +336,16 @@ int second_run(int IC, int DC,
                                 }
 
                                 if(binaryJumpSecondParam->encoding_type == External) {
-                                    extern_show_list = addLabelNode(extern_show_list, token, IC+offset, Code);
+                                    extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                                 }
 
                                 /* encode word */
                                 if (jmpFirstParmType == Register && jmpSecondParmType == Register) {
-                                    offset--;
+                                    command_offset--;
                                 }
 
                                 /* encode word */
-                                code_image[IC+offset].param = *binaryJumpSecondParam;
+                                code_image[IC + command_offset].param = *binaryJumpSecondParam;
                             }
                             else {
                                 continue;
@@ -350,18 +361,18 @@ int second_run(int IC, int DC,
                     continue;
                 }
 
-                /* encode command into code image */
+                /* encode current_command into code image */
                 code_image[IC].command = binaryCommand;
-                IC += offset + 1;
+                IC += command_offset + 1;
 
 
-               /* printf("\t%lu command: %s length: %d\n", line_number, command.name, offset + 1); */
+               /* printf("\t%lu current_command: %s length: %d\n", line_number, current_command.name, command_offset + 1); */
             } else
                 continue;
         }
     }
 
-    error_flag = error_flag | checkForUndefinedEntries(entry_list,entry_show_list,base_file_name);
+    error_flag = error_flag | checkForUndefinedEntries(entry_list, entry_show_list, base_file_name);
 
     /* if all good  create entry and external files from lists */
     if (!error_flag) {
@@ -390,6 +401,16 @@ int second_run(int IC, int DC,
     return error_flag;
 }
 
+/* Function: encodeArgumentToWord
+ * Description: encodes an argument to a word according to its type
+ * Parameters: token - the argument to encode
+ *             current_arg_type - the type of the argument
+ *             binArg - pointer to the word to encode to
+ *             prev_register - the previous register if not exists it should hold -1
+ *             label_list - list of labels
+ *             extern_list - list of extern labels
+ * Returns: error code if error occurred, 0 otherwise
+ */
 ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg, int prev_register, node_t* label_list, node_t* extern_list) {
     label_t* current_label;
     int data;
@@ -401,7 +422,7 @@ ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg
             data = atoi(token);
             (*binArg)->param.data = data;
             if (data > MAX_PARAM_VALUE || data < MIN_PARAM_VALUE) {
-                return DATA_OUT_OF_RANGE;
+                return PARAM_VALUE_OUT_OF_RANGE;
             }
             break;
         case Direct:
@@ -432,7 +453,13 @@ ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg
     return NO_ERROR;
 }
 
-
+/* Function: createEntryFile
+ * Description: creates an entry file from the entry list and the base file name
+ * Parameters: entry_show_list - the list of entry labels
+ *             base_file_name - the base file name (without extension)
+ * Output: none
+ * Example: createEntryFile(entry_list, "test") will create a file named "test.ent" with the entry labels
+ */
 void createEntryFile(node_t* entry_show_list, char* base_file_name) {
     char* entry_file_name;
     FILE* output_entry_file;
@@ -442,7 +469,7 @@ void createEntryFile(node_t* entry_show_list, char* base_file_name) {
 
     if (!entry_show_list) return;
 
-    if(!(entry_file_name = getFileName(base_file_name, ENT_FILE_EXTENSION))) {
+    if(!(entry_file_name = getFileName(base_file_name, ENTRY_FILE_EXTENSION))) {
         return;
     }
 
@@ -457,7 +484,13 @@ void createEntryFile(node_t* entry_show_list, char* base_file_name) {
     fclose(output_entry_file);
 }
 
-
+/* Function: createExternFile
+ * Description: creates an extern file from the extern list and the base file name
+ * Parameters: extern_show_list - the list of extern labels
+ *             base_file_name - the base file name (without extension)
+ * Output: none
+ * Example: createExternFile(extern_list, "test") will create a file named "test.ext" with the extern labels
+ */
 void createExternFile(node_t* extern_show_list, char* base_file_name) {
     char* extern_file_name;
     FILE* output_extern_file;
@@ -467,7 +500,7 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
 
     if (!extern_show_list) return;
 
-    if(!(extern_file_name = getFileName(base_file_name, EXT_FILE_EXTENSION))) {
+    if(!(extern_file_name = getFileName(base_file_name, EXTERN_FILE_EXTENSION))) {
         return;
     }
 
@@ -482,6 +515,16 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
     fclose(output_extern_file);
 }
 
+/* Function: createObjFile
+ * Description: creates an object file from the code image, memory image and the base file name
+ * Parameters: IC - the instruction counter (number of words in the code image)
+ *             code_image - the code image (word array)
+ *             DC - the data counter (number of words in the memory image)
+ *             memory_image - the data image (word array)
+ *             base_file_name - the base file name (without extension)
+ * Output: none
+ * Example: createObjFile(100, code_image, 200, data_image, "test") will create a file named "test.ob" with the object file
+ */
 void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* base_file_name) {
     char* obj_file_name;
     FILE* output_obj_file;
@@ -508,7 +551,7 @@ void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* b
         current_word = code_image[i].data.data;
         fprintf(output_obj_file, "%04d\t", i + START_ADD);
         /* print data in binary 1 and 0 */
-        writeBinToFile(current_word, WORD_SIZE, output_obj_file);
+        writeObjToFile(current_word, WORD_SIZE, output_obj_file);
         fputc('\n', output_obj_file);
     }
 
@@ -519,11 +562,19 @@ void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* b
         current_word = memory_image[i].data.data;
         fprintf(output_obj_file, "%04d\t", i + START_ADD + IC);
         /* print data in binary 1 and 0 */
-        writeBinToFile(current_word, WORD_SIZE, output_obj_file);
+        writeObjToFile(current_word, WORD_SIZE, output_obj_file);
         fputc('\n', output_obj_file);
     }
 }
 
+/* Function: checkForUndefinedEntries
+ * Description: checks if there are undefined entries in the entry list and prints an error if there are
+ * Parameters: entry_list - the list of entry labels
+ *             entry_show_list - the list of entry labels that were defined
+ *             base_file_name - the base file name (without extension)
+ * Output: true if there are undefined entries, false otherwise
+ * Example: checkForUndefinedEntries(entry_list, entry_show_list, "test") will return true if there are undefined entries
+ */
 bool checkForUndefinedEntries(node_t* entry_list, node_t* entry_show_list, char* base_file_name) {
 
     bool error_flag = false;

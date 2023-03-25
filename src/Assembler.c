@@ -8,8 +8,8 @@ int main(int argc, char* argv[]) {
         return 1;
     } else {
         for (; file_index < argc; file_index++) {
-            if(runAssembler(strdup(argv[file_index])) == -1) {
-                return -1;
+            if(runAssembler(strdup(argv[file_index])) == ERROR_CODE) {
+                return ERROR_CODE;
             }
             printf("\n\n");
         }

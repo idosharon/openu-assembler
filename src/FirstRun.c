@@ -1,5 +1,23 @@
+/*
+ * File:        FirstRun.c
+ * Type:        Source file
+ * Description: First run module, handles all first run and continues to second run.
+ *
+ * Authors: Ido Sharon (215774142)
+ *          Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #include "FirstRun.h"
 
+/* Function: firstRun
+ * Description: first run of the assembler, handles all first run and continues to second run.
+ * Input: file - pointer to file to assemble,
+ *        base_file_name - base file name (excluding extension, used for output file name with new .ob extension)
+ * Output: 0 - if no errors occurred
+ *         -1 - if errors occurred
+ */
 int firstRun(FILE* file, char* base_file_name) {
     char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
     size_t line_number = 0;
@@ -191,7 +209,7 @@ int firstRun(FILE* file, char* base_file_name) {
         }
         else {
             /* get current command index */
-            if ((command_index = find_command(token)) != -1) {
+            if ((command_index = find_command(token)) != ERROR_CODE) {
 
                 /* add label if needed */
                 if (label_flag) {
@@ -288,34 +306,12 @@ int firstRun(FILE* file, char* base_file_name) {
     info_file("Finished first run", base_file_name);
     /* printf("IC: %d DC: %d\n", IC, DC); */
 
+    if(DC-START_ADD > MAX_MEMORY_SIZE) {
+        line_error(MEMORY_OVERFLOW, base_file_name, line_number);
+        error_flag = true;
+    }
+
     /* start second run */
     rewind(file);
     return second_run(IC, DC, label_list, extern_list, entry_list, error_flag, file ,base_file_name);
-
-    return error_flag;
 }
-
-bool deleteLabel(char* name, node_t** head) {
-    node_t* current = *head;
-    node_t* prev = NULL;
-    label_t* label;
-    while(current != NULL) {
-        if(isStrEqual((label = (label_t*) current->data)->name, name)) {
-            if(prev == NULL) {
-                *head = (node_t*) current->next;
-            } else {
-                prev->next = current->next;
-            }
-            free(label->name);
-            free(label);
-            free(current);
-            return true;
-        }
-        prev = current;
-        current = (node_t*) current->next;
-    }
-    return false;
-}
-
-
-

@@ -30,8 +30,9 @@ typedef struct {
 
 /* function headers - explanation for each function can be found in the source file */
 char* preAssemble(FILE*, char*);
-macro_t* findMacro(char*, node_t*);
 
+/* macro functions */
+macro_t* findMacro(char*, node_t*);
 bool isValidMacroName(char*);
 node_t* addMacroNode(node_t*, char*);
 

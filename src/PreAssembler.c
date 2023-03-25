@@ -22,7 +22,7 @@
 char* preAssemble(FILE* file, char* base_file_name) {
     /* open pre assembler file */
     FILE* pre_assembled_file;
-    char* output_file_name = getFileName(base_file_name, PRE_ASSEMBLER_FILE_EXTENSION);
+    char* pre_assembled_file_name = getFileName(base_file_name, PRE_ASSEMBLER_FILE_EXTENSION);
 
     /* line buffer & line number */
     char* line = (char*) calloc(MAX_LINE_SIZE, sizeof (char));
@@ -37,7 +37,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
     bool macro_flag = false;
 
     /* add pre assembler file extension & start writing to file */
-    if(!(pre_assembled_file = openFile(output_file_name, FILE_WRITE_MODE))) return NULL;
+    if(!(pre_assembled_file = openFile(pre_assembled_file_name, FILE_WRITE_MODE))) return NULL;
 
     /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
@@ -97,18 +97,20 @@ char* preAssemble(FILE* file, char* base_file_name) {
         }
     }
 
-    /* free all variables */
-    free_list(macro_list);
-    free(line);
-
+    /* check if macro def is still open */
     if(macro_flag) {
         file_error(MACRO_SYNTAX_ERROR, base_file_name);
     }
 
     fclose(pre_assembled_file);
-    info_file("Created Pre Assembled file", output_file_name);
+    info_file("Created Pre Assembled file", pre_assembled_file_name);
 
-    return output_file_name;
+    /* free all variables */
+    free_list(macro_list);
+    free(line);
+    free(pre_assembled_file);
+
+    return pre_assembled_file_name;
 }
 
 /* Function: findMacro
@@ -153,6 +155,14 @@ bool isValidMacroName(char* macro_name) {
     return true;
 }
 
+/* Function: addMacroNode
+ * Description: add a new macro node to the start of a given list of macros
+ * Input: head - pointer to the head of the list of macros
+ *        name - char pointer to the name of the new macro
+ * Output: pointer to the new head of the list of macros
+ * Example: macro_list: MACRO1 -> MACRO2 -> MACRO3
+ *          addMacroNode(macro_list, "MACRO4"): MACRO4 -> MACRO1 -> MACRO2 -> MACRO3
+ */
 node_t* addMacroNode(node_t* head, char* name) {
     /* set current macro to the new macro */
     macro_t* new_macro = (macro_t*) (malloc(sizeof (macro_t)));

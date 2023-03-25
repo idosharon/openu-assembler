@@ -1,3 +1,12 @@
+/* File:  Consts.h
+ * Type:   Header file
+ * Description: Constants used in the assembler.
+ * Authors: Ido Sharon (215774142)
+ *          Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #ifndef CONSTS_HEADER
 #define CONSTS_HEADER
 
@@ -5,29 +14,28 @@
 #define ASM_FILE_EXTENSION ".as"
 #define PRE_ASSEMBLER_FILE_EXTENSION ".am"
 #define OBJ_FILE_EXTENSION ".o"
-#define ENT_FILE_EXTENSION ".ent"
-#define EXT_FILE_EXTENSION ".ext"
+#define ENTRY_FILE_EXTENSION ".ent"
+#define EXTERN_FILE_EXTENSION ".ext"
 
 /* File reading consts */
-#define MAX_LINE_SIZE 80
-#define FILE_READ_MODE "r"
+#define MAX_LINE_SIZE   80
+#define FILE_READ_MODE  "r"
 #define FILE_WRITE_MODE "w"
 
 /* Memory units size */
 #define BYTE_SIZE 7
 #define WORD_SIZE (2 * BYTE_SIZE)
-#define MEMORY_SIZE (256 * WORD_SIZE)
+
+#define MAX_MEMORY_WORDS 256
+#define MAX_MEMORY_SIZE (MAX_MEMORY_WORDS * WORD_SIZE)
+
+
 #define START_ADD 100
 #define OPCODE_SIZE 4
 #define MAX_DATA_VALUE (8191)
 #define MIN_DATA_VALUE (-8192)
 #define MAX_PARAM_VALUE (2047)
 #define MIN_PARAM_VALUE (-2048)
-
-/* Registers consts */
-#define REGISTER_SIZE WORD_SIZE
-#define REGISTER_COUNT 8
-#define REGISTER_NAME_SIZE 2
 
 /* Symbols */
 #define COMMENT_CHAR ';'
@@ -45,16 +53,11 @@
 #define ONE_BIT_REPR '1'
 #define ZERO_BIT_REPR '0'
 
-
-#define NUMBER_SYMBOL '#'
-
 /* Labels */
 #define LABEL_SEP ':'
 
-/* Jump command format */
+/* Jump to command format */
 #define OPEN_BRACKET "("
-#define CLOSE_BRACKET ")"
-#define COMMA ','
 
 /* Macros */
 #define START_MACRO_SYMBOL "mcr"
@@ -73,7 +76,5 @@
 /* command types */
 #define NUM_OF_REGISTERS 8
 extern const char* registers[NUM_OF_REGISTERS];
-
-#define EMPTY_ARGUMENT {NULL, None}
 
 #endif
