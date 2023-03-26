@@ -18,12 +18,19 @@
  *         1 - if errors occurred
  */
 int firstRun(FILE* file, char* base_file_name) {
+    /* line - current line from file */
     char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
+    /* line number (size_t because line number is positive and could be big */
     size_t line_number = 0;
+    /* command index of the current command found in line (if found) */
     size_t command_index = 0;
+    /* command length of the current command found in line (if found) */
     int command_length = 1;
+    /* command struct of the current command found in line (if found) */
     command_t command;
+    /* argument type (enum) of the source and destination arguments  */
     arg_type source_type = None, dest_type = None;
+    /* token - the current token in line */
     char* token;
 
     /* pointers to start and finish of string in .string*/
@@ -32,10 +39,12 @@ int firstRun(FILE* file, char* base_file_name) {
     /* create list for labels */
     node_t* label_list = NULL;
 
+    /* current label if found label in line */
     char* current_label = NULL;
+    /* label flag if found label in start of line */
     bool label_flag = false;
 
-    /* error flag */
+    /* error flag if found an error */
     bool error_flag = false;
 
     /* create list for external and entry labels */
@@ -55,22 +64,24 @@ int firstRun(FILE* file, char* base_file_name) {
 
         label_flag = false;
 
-        /* check if there is a label, TODO: improve maybe move to other function */
+        /* check if there is a label (if found ':' then label could be in line */
         if(strchr(line, LABEL_SEP)) {
             /* check if label is valid */
             if (isValidLabel(token)) {
                 label_flag = true;
+                /* get the label and remove the ':' */
                 current_label = token;
                 current_label[strlen(current_label)-1] = NULL_TERMINATOR;
                 token = strtok(NULL, SPACE_SEP);
 
+                /* if rest of the line is empty - error*/
                 if (token == NULL) {
                     line_error(MISSING_CODE_AFTER_LABEL, base_file_name, line_number, line);
                     error_flag = true;
                     continue;
                 }
 
-                /* check if label exists in future labels */
+                /* check if label is already defined */
                 if (findLabelInList(current_label, label_list)) {
                     line_error(MULTIPLE_LABEL_DEFINITIONS, base_file_name, line_number, line);
                     error_flag = true;
@@ -86,7 +97,7 @@ int firstRun(FILE* file, char* base_file_name) {
 
         /* check all symbol types */
         if (IS_DATA_SYMBOL(token)) {
-            /* check if label is already defined */
+            /* check if label is defined in start of line, if so - save the label in memoryImage (address = DC) */
             if (label_flag) {
                 label_list = addLabelNode(label_list, current_label, DC, Data);
             }
@@ -95,49 +106,62 @@ int firstRun(FILE* file, char* base_file_name) {
                 /* calculate data length */
                 while((token = strtok(NULL, COMMA_SEP)) != NULL) {
                     if (is_number(token)) {
-                        /* TODO: move atoi to value */
+                        /* check if data is in range */
                         if(!isDataInRange(atoi(token))) {
                             line_error(DATA_OUT_OF_RANGE, base_file_name, line_number, line);
                             error_flag = true;
                             continue;
                         }
+                        /* increase DC (each number takes one word */
                         DC++;
                     } else {
+                        /* data is not a number -error */
                         line_error(DATA_SYNTAX_ERROR, base_file_name,line_number, line);
                         error_flag = true;
                         continue;
                     }
                 }
             }
+            /* if token is .string */
             else if (isStrEqual(token, STRING_SYMBOL)) {
+                /* get the string between first '"' and last '"' */
                 token = strtok(NULL,SPACE_SEP);
                 first_quote = strchr(line, STRING_QUOTE);
                 last_quote = strrchr(line, STRING_QUOTE);
+                /* check if there is a string */
                 if (token == NULL) {
+                    /* no string - error */
                     line_error(STRING_MISSING_ARGUMENT, base_file_name,line_number, line);
                     error_flag = true;
                     continue;
                 }
+                /* if didn't find first or last '"' - error */
                 if (last_quote == NULL || first_quote == NULL || last_quote <= first_quote) {
                     line_error(STRING_MISSING_QUOTE, base_file_name, line_number, line);
                     error_flag = true;
                     continue;
                 }
+                /* if there is more text after string - error */
                 if (strtok(last_quote+1,SPACE_SEP) != NULL) {
                     line_error(STRING_SYNTAX_ERROR, base_file_name,line_number, line);
                     error_flag = true;
                     continue;
                 }
+                /* copy string to token */
                 strncpy(token, first_quote, last_quote-first_quote);
+                /* cut to string to be between first and last '"' */
                 token[last_quote-first_quote+1] = NULL_TERMINATOR;
+                /* check if string is valid */
                 if (token[0] != STRING_QUOTE || token[strlen(token)-1] != STRING_QUOTE) {
                     line_error(STRING_SYNTAX_ERROR, base_file_name,line_number, line);
                     error_flag = true;
                     continue;
                 }
+                /* increase DC by string length */
                 DC += strlen(token)-1;
             }
         }
+        /* check if token is .entry or .extern */
         else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
 
             /* case: extern symbol */
@@ -170,11 +194,12 @@ int firstRun(FILE* file, char* base_file_name) {
                     error_flag = true;
                     continue;
                 }
-                /* add to external list */
 
+                /* if the label is defined in start of line - raise warning */
                 if (label_flag) {
                     line_warning(LABEL_DEF_BEFORE_EXTERN, base_file_name, line_number, line);
                 }
+                /* add to external list */
                 extern_list = addLabelNode(extern_list, token, line_number, Extern);
             } else {
 
@@ -207,6 +232,7 @@ int firstRun(FILE* file, char* base_file_name) {
                     continue;
                 }
 
+                /* if label is defined in start of line - raise warning */
                 if (label_flag) {
                     line_warning(LABEL_DEF_BEFORE_ENTRY, base_file_name, line_number, line);
                 }
@@ -225,6 +251,7 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 /* check command type (group) */
                 command_length = 1;
+                /* get command struct */
                 command = commands[command_index];
 
                 source_type = None, dest_type = None;
