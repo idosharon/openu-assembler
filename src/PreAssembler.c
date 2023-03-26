@@ -69,8 +69,9 @@ char* preAssemble(FILE* file, char* base_file_name) {
         } else {
             /* check if token is an existing macro */
             if((current_macro = findMacro(token, macro_list)) != NULL) {
-                if (strtok(NULL,SPACE_SEP))
-                    line_warning(MACRO_SYNTAX_WARNING,base_file_name,line_number);
+                if (strtok(NULL,SPACE_SEP)) {
+                    line_warning(MACRO_SYNTAX_WARNING, base_file_name, line_number, line);
+                }
                 fputs(current_macro->data, pre_assembled_file);
             } else {
                 /* check for start of new macro def */

@@ -17,41 +17,39 @@
 #define ENTRY_FILE_EXTENSION ".ent"
 #define EXTERN_FILE_EXTENSION ".ext"
 
-/* File reading consts */
-#define MAX_LINE_SIZE   80
-#define FILE_READ_MODE  "r"
-#define FILE_WRITE_MODE "w"
-
 /* Memory units size */
 #define BYTE_SIZE 7
 #define WORD_SIZE (2 * BYTE_SIZE)
 
+/* File reading consts */
+#define MAX_LINE_SIZE   80
 #define MAX_MEMORY_WORDS 256
 #define MAX_MEMORY_SIZE (MAX_MEMORY_WORDS * WORD_SIZE)
+#define FILE_READ_MODE  "r"
+#define FILE_WRITE_MODE "w"
 
-
+/* Address consts */
 #define START_ADD 100
-#define OPCODE_SIZE 4
+
+/* Data consts */
 #define MAX_DATA_VALUE (8191)
 #define MIN_DATA_VALUE (-8192)
 #define MAX_PARAM_VALUE (2047)
 #define MIN_PARAM_VALUE (-2048)
 
-/* Symbols */
+/* Symbols consts */
 #define COMMENT_CHAR ';'
 #define LINE_BREAK "\n\0"
-#define SPACE_CHAR ' '
 #define SPACE_SEP " \t\r"LINE_BREAK
 #define COMMA_SEP ","SPACE_SEP
 #define STRING_QUOTE '"'
 #define NULL_TERMINATOR '\0'
 #define LINE_TERMINATOR '\n'
-
 #define IMMEDIATE_PREFIX '#'
-
 #define JMP_OPEN_BRACKET "("SPACE_SEP
 #define JMP_CLOSE_BRACKET ")"SPACE_SEP
 
+/* Binary representation */
 #define ONE_BIT_REPR '/'
 #define ZERO_BIT_REPR '.'
 

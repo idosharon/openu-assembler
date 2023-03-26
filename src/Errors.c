@@ -1,3 +1,12 @@
+/* File: Errors.c
+ * Type: Source file
+ * Description: Contains all the error messages used in the assembler.
+ * Authors: Ido Sharon (215774142)
+ *          Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #include "Errors.h"
 
 const char* ERRORS[] = {

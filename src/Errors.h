@@ -1,3 +1,12 @@
+/* File: Errors.h
+ * Type: Header file
+ * Description: Header file for the errors module
+ * Authors: Ido Sharon (215774142)
+ *          Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #ifndef ERRORS_HEADER
 #define ERRORS_HEADER
 
@@ -39,6 +48,7 @@ typedef enum {
     MEMORY_OVERFLOW
 } ERROR;
 
+/* array of error messages */
 extern const char* ERRORS[];
 
 /* Macros for printing error messages */
@@ -55,12 +65,13 @@ typedef enum {
     LABEL_DEF_BEFORE_ENTRY
 } WARNING;
 
+/* array of warning messages */
 extern const char* WARNINGS[];
 
 /* Macros for printing warning messages */
 #define warn(warning) (printf("[warning]: %s\n", WARNINGS[warning]))
-#define line_warning(warning_index, file_name, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
-                                                        printf("[warning]: %s (file: %s, line: %lu)\n", WARNINGS[warning_index], file_name, line)
+#define line_warning(warning_index, base_file_name, line_number, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
+                                                                       printf("[warning]: %s (file: %s%s, line: %lu): %s\n", WARNINGS[warning_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
 #define file_warning(warning_index, file_name) (printf("[warning]: %s (file: %s)\n", WARNINGS[warning_index], file_name))
 
 

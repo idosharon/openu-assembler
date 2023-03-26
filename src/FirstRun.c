@@ -173,7 +173,7 @@ int firstRun(FILE* file, char* base_file_name) {
                 /* add to external list */
 
                 if (label_flag) {
-                    line_warning(LABEL_DEF_BEFORE_EXTERN, base_file_name, line_number);
+                    line_warning(LABEL_DEF_BEFORE_EXTERN, base_file_name, line_number, line);
                 }
                 extern_list = addLabelNode(extern_list, token, line_number, Extern);
             } else {
@@ -208,7 +208,7 @@ int firstRun(FILE* file, char* base_file_name) {
                 }
 
                 if (label_flag) {
-                    line_warning(LABEL_DEF_BEFORE_ENTRY, base_file_name, line_number);
+                    line_warning(LABEL_DEF_BEFORE_ENTRY, base_file_name, line_number, line);
                 }
                 /* add to entry list */
                 entry_list = addLabelNode(entry_list, token, line_number, Entry);

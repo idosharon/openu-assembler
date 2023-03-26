@@ -1,6 +1,16 @@
+/* File: Consts.c
+ * Type: Source file
+ * Description: Contains all the constants used in the assembler.
+ * Authors: Ido Sharon (215774142)
+ *          Amitai Ben Shalom (327743399)
+ * Instructor: Ram Tahor
+ * Course: C Programming Lab (20465)
+ * Semester: 2023a
+ */
 #include "Consts.h"
 #include "Types.h"
 
+/* all the commands in an array of command_t, ordered by their binary codes */
 const command_t commands[NUM_OF_COMMANDS] = {
         {"mov", Immediate | Direct | Register, Direct | Register},
         {"cmp", Immediate | Direct | Register, Immediate | Direct | Register},
@@ -27,6 +37,7 @@ const command_t commands[NUM_OF_COMMANDS] = {
         {"stop", 0, 0}
 };
 
+/* all the registers in an array of strings, ordered by their binary codes */
 const char* registers[NUM_OF_REGISTERS] = {
         "r0",
         "r1",

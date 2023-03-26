@@ -126,7 +126,7 @@ int second_run(size_t IC, size_t DC,
                     if (is_number(token)) {
                         current_data_value = atoi(token);
                         if (current_data_value > MAX_DATA_VALUE || current_data_value < MIN_DATA_VALUE) {
-                            line_warning(DATA_OUT_OF_RANGE, base_file_name, line_number);
+                            line_warning(DATA_OUT_OF_RANGE, base_file_name, line_number, line);
                         }
                         binaryData.data = current_data_value;
                         memory_image[DC].data = binaryData;
@@ -216,9 +216,9 @@ int second_run(size_t IC, size_t DC,
 
                         /* get encoded word of argument */
                         if ((error_code = encodeArgumentToWord(token, source_type, (word **) &binaryFirstParam, -1, label_list, extern_list))) {
-                            if (error_code == DATA_OUT_OF_RANGE)
-                                line_warning(error_code, base_file_name, line_number);
-                            else {
+                            if (error_code == DATA_OUT_OF_RANGE) {
+                                line_warning(error_code, base_file_name, line_number, line);
+                            } else {
                                 error_flag = true;
                                 line_error(error_code, base_file_name, line_number, line);
                                 continue;
@@ -258,8 +258,9 @@ int second_run(size_t IC, size_t DC,
                         /* get encoded word of argument */
                         if ((error_code = encodeArgumentToWord(token, (dest_type == Jump ? Direct : dest_type), (word**) &binarySecondParam,
                                                                (source_type == Register ? ((binary_two_registers*) binaryFirstParam)->src_register : 0), label_list, extern_list))) {
-                            if (error_code == DATA_OUT_OF_RANGE)
-                                line_warning(error_code, base_file_name, line_number);
+                            if (error_code == DATA_OUT_OF_RANGE) {
+                                line_warning(error_code, base_file_name, line_number, line);
+                            }
                             else {
                                 error_flag = true;
                                 line_error(error_code, base_file_name, line_number, line);
@@ -296,8 +297,9 @@ int second_run(size_t IC, size_t DC,
 
                                 /* get encoded word of argument */
                                 if ((error_code = encodeArgumentToWord(token, jmpFirstParmType, (word **) &binaryJumpFirstParam, -1, label_list, extern_list))) {
-                                    if (error_code == DATA_OUT_OF_RANGE)
-                                        line_warning(error_code, base_file_name, line_number);
+                                    if (error_code == DATA_OUT_OF_RANGE) {
+                                        line_warning(error_code, base_file_name, line_number, line);
+                                    }
                                     else {
                                         error_flag = true;
                                         line_error(error_code, base_file_name, line_number, line);
@@ -329,8 +331,9 @@ int second_run(size_t IC, size_t DC,
                                 /* get encoded word of argument */
                                 if ((error_code = encodeArgumentToWord(token, jmpSecondParmType, (word **) &binaryJumpSecondParam,
                                                                        (jmpFirstParmType == Register ? ((binary_two_registers*) binaryJumpFirstParam)->src_register : 0), label_list, extern_list))) {
-                                    if (error_code == DATA_OUT_OF_RANGE)
-                                        line_warning(error_code, base_file_name, line_number);
+                                    if (error_code == DATA_OUT_OF_RANGE) {
+                                        line_warning(error_code, base_file_name, line_number, line);
+                                    }
                                     else {
                                         error_flag = true;
                                         line_error(error_code, base_file_name, line_number, line);
