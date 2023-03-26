@@ -57,22 +57,28 @@ typedef struct {
     struct node_t* next;
 } node_t;
 
+/* Type: label_t - struct
+ * Description: Label type that holds its name, place and type.
+ * */
 typedef struct {
     char* name;
     size_t place;
     label_type type;
 } label_t;
 
-
+/* Type: command_t - struct
+ * Description: Command type that holds its name and the possible types of its arguments.
+ */
 typedef struct {
     char* name;
 
     unsigned arg1_optional_types: 4;
     unsigned arg2_optional_types: 4;
-
 } command_t;
 
-/* binary string */
+/* Type: binary_command - struct
+ * Description: The binary format of a command.
+ */
 typedef struct {
     unsigned encoding_type: 2;
     unsigned dest_type: 2;
@@ -82,22 +88,33 @@ typedef struct {
     unsigned second_par_type: 2;
 } binary_command;
 
-/* binary data */
+/* Type: binary_data - struct
+ * Description: The binary format of a data.
+ */
 typedef struct {
     unsigned data: 14;
 } binary_data;
 
+/* Type: binary_param - struct
+ * Description: The binary format of a parameter.
+ */
 typedef struct {
     unsigned encoding_type: 2;
     unsigned data: 12;
 } binary_param;
 
+/* Type: binary_two_registers - struct
+ * Description: The binary format of two registers.
+ */
 typedef struct {
     unsigned encoding_type: 2;
     unsigned dest_register: 6;
     unsigned src_register: 6;
 } binary_two_registers;
 
+/* Type: word - union
+ * Description: A word in the binary file.
+ */
 typedef union {
     binary_command command;
     binary_data data;
@@ -105,9 +122,7 @@ typedef union {
     binary_two_registers two_registers;
 } word;
 
+/* set of all the commands */
 extern const command_t commands[NUM_OF_COMMANDS];
-
-
-
 
 #endif

@@ -41,6 +41,7 @@ typedef enum {
 
 extern const char* ERRORS[];
 
+/* Macros for printing error messages */
 #define error(error_index) (printf("[error]: %s\n", ERRORS[error_index]))
 #define line_error(error_index, base_file_name, line_number, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
                                                                     printf("[error]: %s (see file: %s%s, line: %lu): %s\n", ERRORS[error_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
@@ -56,8 +57,10 @@ typedef enum {
 
 extern const char* WARNINGS[];
 
+/* Macros for printing warning messages */
 #define warn(warning) (printf("[warning]: %s\n", WARNINGS[warning]))
-#define line_warning(warning_index, file_name, line) (printf("[warning]: %s (file: %s, line: %lu)\n", WARNINGS[warning_index], file_name, line))
+#define line_warning(warning_index, file_name, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
+                                                        printf("[warning]: %s (file: %s, line: %lu)\n", WARNINGS[warning_index], file_name, line)
 #define file_warning(warning_index, file_name) (printf("[warning]: %s (file: %s)\n", WARNINGS[warning_index], file_name))
 
 

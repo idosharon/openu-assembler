@@ -1,0 +1,4 @@
+[info]: Running assembler for: example9/example9.as
+[info]: Created pre assembled file: example9/example9.am
+[error]: Undefined label (see file: example9/example9.am, line: 4):     inc K
+[error]: Undefined label (see file: example9/example9.am, line: 8):     inc K

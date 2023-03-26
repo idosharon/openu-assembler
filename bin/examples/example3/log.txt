@@ -1,0 +1,3 @@
+[info]: Running assembler for: example3/example3.as
+[info]: Created pre assembled file: example3/example3.am
+[error]: Undefined label (see file: example3/example3.am, line: 3):     jmp LABEL2

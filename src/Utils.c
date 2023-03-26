@@ -171,6 +171,11 @@ arg_type get_arg_type(char* token, arg_type types) {
     return None;
 }
 
+/* Function: find_register
+ * Description: find a register in the registers array
+ * Input: str - register name to find
+ * Output: register index if found, ERROR_CODE otherwise
+ */
 int find_register(char* str) {
     int i;
     for(i = 0; i < NUM_OF_REGISTERS; i++) {
@@ -181,8 +186,12 @@ int find_register(char* str) {
     return ERROR_CODE;
 }
 
-
-
+/* Function: findLabelInList
+ * Description: find a label in a list of labels
+ * Input: name - label name to find
+ *        head - head of list to search in
+ * Output: the found label if found, NULL otherwise
+ */
 label_t* findLabelInList(char* name, node_t* head) {
     label_t* label;
     while(head != NULL) {
@@ -193,6 +202,18 @@ label_t* findLabelInList(char* name, node_t* head) {
     }
     return NULL;
 }
+
+/* Function: findLabel
+ * Description: find a label in a list of labels
+ * Input: name - label name to find
+ *        label_list - list of labels to search in
+ *        ... - NULL terminated list of label lists to search in
+ * Output: label if found, NULL otherwise
+ * Example: findLabel("L1", label_list, NULL) = label_t*
+ *          findLabel("L1", label_list, label_list2, NULL) = label_t*
+ *          findLabel("L1", label_list, label_list2, label_list3, NULL) = label_t*
+ *          findLabel("L1", label_list, label_list2, label_list3, label_list4, NULL) = label_t*
+ */
 label_t* findLabel(char* name, node_t* label_list, ...) {
     label_t* label;
     va_list lists;
@@ -206,6 +227,14 @@ label_t* findLabel(char* name, node_t* label_list, ...) {
     va_end(lists);
     return NULL;
 }
+/* Function: addLabelNode
+ * Description: add a new label to the start of a given list
+ * Input: head - pointer to the head of the label list
+ *        name - label name
+ *        place - label address
+ *        labelType - label type
+ * Output: pointer to the new head of the label list
+ */
 node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelType) {
     /* set current label to the new label */
     label_t* new_label = (label_t*) (malloc(sizeof (label_t)));
@@ -221,7 +250,6 @@ node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelTyp
     new_label_node->next = (struct node_t *) head;
     return new_label_node;
 }
-
 
 /* Function: updateDCInList
  * Description: update the DC address of all data labels in a given list

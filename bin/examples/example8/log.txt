@@ -1,0 +1,8 @@
+[info]: Running assembler for: example8/example8.as
+[info]: Created pre assembled file: example8/example8.am
+[error]: Undefined label (see file: example8/example8.am, line: 4):     jmp K(L1,L2)
+[error]: Undefined label (see file: example8/example8.am, line: 5):     clr L1
+[error]: Undefined label (see file: example8/example8.am, line: 6):     inc K
+[error]: Undefined label (see file: example8/example8.am, line: 7):     jmp K(L1,L2)
+[error]: Undefined label (see file: example8/example8.am, line: 8):     clr L1
+[error]: Undefined label (see file: example8/example8.am, line: 9):     inc K

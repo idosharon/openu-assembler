@@ -1,5 +1,4 @@
-/*
- * File:        FirstRun.c
+/* File:        FirstRun.c
  * Type:        Source file
  * Description: First run module, handles all first run and continues to second run.
  *

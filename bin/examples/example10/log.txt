@@ -1,0 +1,4 @@
+[info]: Running assembler for: example10/example10.as
+[info]: Created pre assembled file: example10/example10.am
+[error]: Undefined label (see file: example10/example10.am, line: 5): MAIN: mov r3, LIST
+[error]: Undefined label (see file: example10/example10.am, line: 7): jmp LIST(e1,e2)
