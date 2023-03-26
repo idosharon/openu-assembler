@@ -56,7 +56,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
             if(strcmp(token, END_MACRO_SYMBOL) == 0) {
                 /* check for extra tokens */
                 if(strtok(NULL, SPACE_SEP)) {
-                    line_error(MACRO_SYNTAX_ERROR, base_file_name, line_number);
+                    line_error(MACRO_SYNTAX_ERROR, base_file_name, line_number, line);
                 }
                 macro_flag = false;
             } else {
@@ -81,7 +81,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
                     if(!isValidMacroName(token) ||
                             findMacro(token, macro_list) ||
                                 strtok(NULL, SPACE_SEP)) {
-                        line_error(MACRO_SYNTAX_ERROR, base_file_name, line_number);
+                        line_error(MACRO_SYNTAX_ERROR, base_file_name, line_number, line);
                     } else {
                         /* create new macro */
                         macro_flag = true;
@@ -103,7 +103,8 @@ char* preAssemble(FILE* file, char* base_file_name) {
     }
 
     fclose(pre_assembled_file);
-    info_file("Created Pre Assembled file", pre_assembled_file_name);
+
+    info_file("Created pre assembled file", pre_assembled_file_name);
 
     /* free all variables */
     free_list(macro_list);

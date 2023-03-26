@@ -28,14 +28,19 @@ typedef enum {
     Extern
 } label_type;
 
-/* memory type */
+/* Type: memory_type - enum
+ * Description: All the possible types of memory.
+ * */
 typedef enum {
     Absolute,
     External,
     Relocatable
 } memory_type;
 
-/* argument type */
+/* Type: arg_type - enum
+ * Description: All the possible types of arguments, ordered by their bit representation in order to use bit operations on them.
+ *              in order to get the argument type for the command, use the log2 function on the argument type.
+ */
 typedef enum {
     None = 0,       /* 0000 = 0 */
     Immediate = 1,  /* 0001 = 0 */
@@ -44,7 +49,9 @@ typedef enum {
     Register = 8    /* 1000 = 3 */
 } arg_type;
 
-/* node type */
+/* Type: node_t - struct
+ * Description: Node of a linked list.
+ * */
 typedef struct {
     void* data;
     struct node_t* next;

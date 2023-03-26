@@ -114,7 +114,7 @@ int second_run(size_t IC, size_t DC,
                 label_flag = false;
             }
             if (current_label != NULL && current_label->type == Extern) {
-                line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number);
+                line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number, line);
                 error_flag = true;
                 continue;
             }
@@ -176,7 +176,7 @@ int second_run(size_t IC, size_t DC,
                     label_flag = false;
                 }
                 if (current_label != NULL && current_label->type == Extern) {
-                    line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number);
+                    line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number, line);
                     error_flag = true;
                     continue;
                 }
@@ -198,6 +198,8 @@ int second_run(size_t IC, size_t DC,
 
                 binaryCommand.opcode = command_index;
 
+                source_type = None, dest_type = None;
+
                 /* if expecting first arg */
                 if (current_command.arg1_optional_types) {
                     /* continue to first arg */
@@ -218,7 +220,7 @@ int second_run(size_t IC, size_t DC,
                                 line_warning(error_code, base_file_name, line_number);
                             else {
                                 error_flag = true;
-                                line_error(error_code, base_file_name, line_number);
+                                line_error(error_code, base_file_name, line_number, line);
                                 continue;
                             }
                         }
@@ -240,7 +242,7 @@ int second_run(size_t IC, size_t DC,
                 if (current_command.arg2_optional_types) {
                     /* continue to second arg */
                     command_offset++;
-                    token = strtok(NULL, (source_type == None ? LINE_BREAK : COMMA_SEP));
+                    token = strtok(NULL, (source_type == None ? SPACE_SEP : COMMA_SEP));
 
                     if (token) {
                         if ((dest_type = get_arg_type(token, current_command.arg2_optional_types)) == None) {
@@ -260,7 +262,7 @@ int second_run(size_t IC, size_t DC,
                                 line_warning(error_code, base_file_name, line_number);
                             else {
                                 error_flag = true;
-                                line_error(error_code, base_file_name, line_number);
+                                line_error(error_code, base_file_name, line_number, line);
                                 continue;
                             }
                         }
@@ -298,7 +300,7 @@ int second_run(size_t IC, size_t DC,
                                         line_warning(error_code, base_file_name, line_number);
                                     else {
                                         error_flag = true;
-                                        line_error(error_code, base_file_name, line_number);
+                                        line_error(error_code, base_file_name, line_number, line);
                                         continue;
                                     }
                                 }
@@ -331,7 +333,7 @@ int second_run(size_t IC, size_t DC,
                                         line_warning(error_code, base_file_name, line_number);
                                     else {
                                         error_flag = true;
-                                        line_error(error_code, base_file_name, line_number);
+                                        line_error(error_code, base_file_name, line_number, line);
                                     }
                                 }
 
@@ -376,7 +378,7 @@ int second_run(size_t IC, size_t DC,
 
     /* if all good  create entry and external files from lists */
     if (!error_flag) {
-        printf("No errors found, creating output files: %s\n", base_file_name);
+        info_file("No errors found, creating output files for", base_file_name);
 
         createObjFile(IC, code_image, DC, memory_image, base_file_name);
 
@@ -394,9 +396,13 @@ int second_run(size_t IC, size_t DC,
 
     }
 
-    /* TODO: free all allocated memory */
-
-    info_file("Finished second run", base_file_name);
+    /* free all allocated memory */
+    free(code_image);
+    free(memory_image);
+    free_list(label_list);
+    free_list(entry_list);
+    free_list(extern_list);
+    free_list(entry_show_list);
 
     return error_flag;
 }
@@ -449,6 +455,9 @@ ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg
                 (*binArg)->two_registers.src_register = prev_register;
             }
             break;
+
+        default:
+            break;
     }
     return NO_ERROR;
 }
@@ -482,6 +491,7 @@ void createEntryFile(node_t* entry_show_list, char* base_file_name) {
     }
 
     fclose(output_entry_file);
+    info_file("Created entry file", entry_file_name);
 }
 
 /* Function: createExternFile
@@ -513,6 +523,7 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
     }
 
     fclose(output_extern_file);
+    info_file("Created extern file", extern_file_name);
 }
 
 /* Function: createObjFile
@@ -525,10 +536,10 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
  * Output: none
  * Example: createObjFile(100, code_image, 200, data_image, "test") will create a file named "test.ob" with the object file
  */
-void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* base_file_name) {
+void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, char* base_file_name) {
     char* obj_file_name;
     FILE* output_obj_file;
-    int i = 0, j = 0;
+    int i = 0;
     size_t current_word;
 
     if(!base_file_name) return;
@@ -539,14 +550,15 @@ void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* b
 
     output_obj_file = fopen(obj_file_name, FILE_WRITE_MODE);
 
-    fprintf(output_obj_file, "object file for: %s%s\n", base_file_name, ASM_FILE_EXTENSION);
-    fprintf(output_obj_file, "Base 10 address\tBase 2 code\n");
-    fprintf(output_obj_file, "\t%d\t%d\n", IC, DC);
+    if(DEBUG) {
+        fprintf(output_obj_file, "object file for: %s%s\n", base_file_name, ASM_FILE_EXTENSION);
+    }
+    fprintf(output_obj_file, "\t%lu\t%lu\n", IC, DC);
 
-    fprintf(output_obj_file, "code image: \n");
+    if(DEBUG)
+        fprintf(output_obj_file, "code image: \n");
 
     /* write code image */
-    /* TODO: move to function */
     for (; i < IC; ++i) {
         current_word = code_image[i].data.data;
         fprintf(output_obj_file, "%04d\t", i + START_ADD);
@@ -555,16 +567,20 @@ void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* b
         fputc('\n', output_obj_file);
     }
 
-    fprintf(output_obj_file, "memory image: \n");
+    if(DEBUG)
+        fprintf(output_obj_file, "memory image: \n");
 
     /* write memory image */
     for (i = 0; i < DC; ++i) {
         current_word = memory_image[i].data.data;
-        fprintf(output_obj_file, "%04d\t", i + START_ADD + IC);
+        fprintf(output_obj_file, "%04lu\t", i + START_ADD + IC);
         /* print data in binary 1 and 0 */
         writeObjToFile(current_word, WORD_SIZE, output_obj_file);
         fputc('\n', output_obj_file);
     }
+
+    fclose(output_obj_file);
+    info_file("Created object file", obj_file_name);
 }
 
 /* Function: checkForUndefinedEntries
@@ -581,7 +597,7 @@ bool checkForUndefinedEntries(node_t* entry_list, node_t* entry_show_list, char*
 
     while(entry_list != NULL) {
         if (!findLabelInList(((label_t*) entry_list->data)->name, entry_show_list)) {
-            line_error(UNDEFINED_LABEL, base_file_name, ((label_t*) entry_list->data)->place);
+            line_error(UNDEFINED_LABEL, base_file_name, ((label_t*) entry_list->data)->place, ((label_t*) entry_list->data)->name);
             error_flag = true;
         }
         entry_list = (node_t*) entry_list->next;

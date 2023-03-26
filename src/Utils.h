@@ -45,6 +45,8 @@
  * */
 #define resetParam(param) param->data = 0; param->encoding_type = None
 
+#define isDataInRange(num) (num >= MIN_DATA_VALUE && num <= MAX_DATA_VALUE)
+
 
 /* Functions */
 

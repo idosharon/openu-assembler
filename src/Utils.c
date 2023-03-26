@@ -223,7 +223,12 @@ node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelTyp
 }
 
 
-/* update the DC address of all data labels */
+/* Function: updateDCInList
+ * Description: update the DC address of all data labels in a given list
+ * Input: start_add - the new DC address
+ *        head - pointer to the head of the label list
+ * Output: None
+ */
 void updateDCInList(size_t IC, node_t* head) {
     label_t* label;
     while(head != NULL) {
@@ -234,6 +239,13 @@ void updateDCInList(size_t IC, node_t* head) {
         head = (node_t*) head->next;
     }
 }
+/* Function: updateDC
+ * Description: update the DC address of all data labels in a given list
+ * Input: IC - the new DC address
+ *        label_list - pointer to the head of the label list
+ *        ... - NULL terminated list of label lists
+ * Output: None
+ */
 void updateDC(size_t IC, node_t* label_list, ...) {
     va_list lists;
     va_start(lists, label_list);
@@ -243,7 +255,12 @@ void updateDC(size_t IC, node_t* label_list, ...) {
     }
 }
 
-/* update the IC address of all data labels */
+/* Function: updateICInList
+ * Description: update the IC address of all code labels in a given list
+ * Input: start_add - the new IC address
+ *        head - pointer to the head of the label list
+ * Output: None
+ */
 void updateICInList(int start_add, node_t* head) {
     label_t* label;
     while(head != NULL) {
@@ -254,6 +271,14 @@ void updateICInList(int start_add, node_t* head) {
         head = (node_t*) head->next;
     }
 }
+
+/* Function: updateIC
+ * Description: update the IC address of all code labels
+ * Input: IC - the new IC address
+ *        label_list - pointer to the head of the label list
+ *        ... - additional label lists
+ * Output: None
+ */
 void updateIC(int IC, node_t* label_list, ...) {
     va_list lists;
     va_start(lists, label_list);
@@ -263,12 +288,17 @@ void updateIC(int IC, node_t* label_list, ...) {
     }
 }
 
-
+/* Function: free_list
+ * Description: free all nodes in a list
+ * Input: head - pointer to the head of the list
+ * Output: None
+ */
 void free_list(node_t* head) {
     /* free list */
     node_t* current = head;
     node_t* next;
 
+    /* free each node */
     while(current != NULL) {
         next = (node_t *) current->next;
         free(current->data);
@@ -277,6 +307,13 @@ void free_list(node_t* head) {
     }
 }
 
+/* Function: getFileName
+ * Description: get a file name from a base name and an extension
+ * Input: base - the base name of the file
+ *        ext - the extension of the file
+ * Output: a pointer to the file name
+ *         NULL if an error occurred
+ */
 char *getFileName(char* base, char* ext) {
     char* file_name;
     if(!base || !ext) return NULL;
@@ -291,6 +328,13 @@ char *getFileName(char* base, char* ext) {
     return NULL;
 }
 
+/* Function: openFile
+ * Description: open a file
+ * Input: file_name - the name of the file to open
+ *        mode - the mode to open the file in
+ * Output: a pointer to the file
+ *         NULL if an error occurred
+ */
 FILE* openFile(char* file_name, char* mode) {
     FILE* fp;
     if(!file_name || !mode) return NULL;
@@ -305,9 +349,18 @@ FILE* openFile(char* file_name, char* mode) {
     return fp;
 }
 
+/* Function: writeObjToFile
+ * Description: write a word to the object file
+ * Input: current_word - the word to write
+ *        num_of_bits - number of bits to write
+ *        fp - file pointer to write to
+ * Output: none
+ */
 void writeObjToFile(size_t current_word, size_t num_of_bits, FILE* fp) {
     int j;
+    /* write each bit in the word to the file */
     for (j = 0; j < num_of_bits; ++j) {
+        /* write the bit to the file */
         fputc(getBitRepresentation((current_word >> (num_of_bits - 1 - j)) & 1),fp);
     }
 }

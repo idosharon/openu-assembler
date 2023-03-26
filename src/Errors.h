@@ -42,8 +42,9 @@ typedef enum {
 extern const char* ERRORS[];
 
 #define error(error_index) (printf("[error]: %s\n", ERRORS[error_index]))
-#define line_error(error_index, file_name, line) (printf("[error]: %s (file: %s, line: %lu)\n", ERRORS[error_index], file_name, line))
-#define file_error(error_index, file_name) (printf("[error]: %s (file: %s)\n", ERRORS[error_index], file_name))
+#define line_error(error_index, base_file_name, line_number, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
+                                                                    printf("[error]: %s (see file: %s%s, line: %lu): %s\n", ERRORS[error_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
+#define file_error(error_index, base_file_name) (printf("[error]: %s (see file: %s%s)\n", ERRORS[error_index], base_file_name, ASM_FILE_EXTENSION))
 
 /* warning messages */
 typedef enum {
