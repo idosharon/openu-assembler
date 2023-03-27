@@ -308,8 +308,7 @@ int second_run(size_t IC, size_t DC,
                                 if ((error_code = encodeArgumentToWord(token, jmpFirstParmType, (word **) &binaryJumpFirstParam, -1, label_list, extern_list))) {
                                     if (error_code == PARAM_VALUE_OUT_OF_RANGE) {
                                         line_warning(error_code, base_file_name, line_number, line);
-                                    }
-                                    else {
+                                    } else {
                                         error_flag = true;
                                         line_error(error_code, base_file_name, line_number, line);
                                     }

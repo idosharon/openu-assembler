@@ -38,6 +38,7 @@ const char* ERRORS[] = {
         "Data out of range",
         "Command or data instruction not found",
         "Memory overflow - file too large",
+        "Consecutive labels",
 };
 
 const char* WARNINGS[] = {

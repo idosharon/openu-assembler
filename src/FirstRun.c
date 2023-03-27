@@ -255,25 +255,22 @@ int firstRun(FILE* file, char* base_file_name) {
                 /* get command struct */
                 command = commands[command_index];
 
+                /* reset arg types */
                 source_type = None, dest_type = None;
 
                 /* if expecting 1 arg */
                 if(command.arg1_optional_types) {
+                    /* get first arg */
                     token = strtok(NULL, COMMA_SEP);
                     if(token) {
+                        /* get source type */
                         if((source_type = get_arg_type(token, command.arg1_optional_types)) == None) {
                             line_error(INVALID_SOURCE_ARG, base_file_name, line_number, line);
                             error_flag = true;
                             continue;
                         }
 
-                        if(!(source_type & command.arg1_optional_types)) {
-                            line_error(INVALID_SOURCE_ARG, base_file_name, line_number, line);
-                            error_flag = true;
-                            continue;
-                        } else {
-                            command_length++;
-                        }
+                        command_length++;
                     } else {
                         line_error(TOO_FEW_ARGS, base_file_name, line_number, line);
                         error_flag = true;
@@ -285,23 +282,17 @@ int firstRun(FILE* file, char* base_file_name) {
                 if(command.arg2_optional_types) {
                     token = strtok(NULL, (source_type == None ? SPACE_SEP : COMMA_SEP));
                     if(token) {
-                        /* ok lets check for Jump type */
                         if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
                             line_error(INVALID_DEST_ARG, base_file_name, line_number, line);
                             error_flag = true;
                             continue;
                         }
-                        if (!(dest_type & command.arg2_optional_types)) {
-                            line_error(INVALID_DEST_ARG, base_file_name, line_number, line);
-                            error_flag = true;
-                            continue;
+
+                        if(dest_type == Jump) {
+                            /* get jump params and check the length of overall command */
+                            command_length += getJumpParamsLength(token);
                         } else {
-                            if(dest_type == Jump) {
-                                /* get jump params and check the length of overall command */
-                                command_length += getJumpParamsLength(token);
-                            } else {
-                                command_length++;
-                            }
+                            command_length++;
                         }
                     } else {
                         line_error(TOO_FEW_ARGS, base_file_name, line_number, line);
@@ -324,7 +315,11 @@ int firstRun(FILE* file, char* base_file_name) {
                 IC += command_length;
                 /* printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length); */
             } else {
-                line_error(COMMAND_OR_DATA_INSTRUCTION_NOT_FOUND, base_file_name, line_number, line);
+                if(isValidLabel(token)) {
+                    line_error(CONSECUTIVE_LABELS, base_file_name, line_number, line);
+                } else {
+                    line_error(COMMAND_OR_DATA_INSTRUCTION_NOT_FOUND, base_file_name, line_number, line);
+                }
                 error_flag = true;
                 continue;
             }
