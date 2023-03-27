@@ -137,7 +137,7 @@ int second_run(int IC, int DC,
                 /* encode all current_data_value */
                 while ((token = strtok(NULL, COMMA_SEP)) != NULL) {
                     /* check if token is a number */
-                    if (to_number(token, &current_data_value)) {
+                    if (to_number(token, &current_data_value) == NO_ERROR) {
                         /* check if number is in range */
                         if (!isDataInRange(current_data_value)) {
                             error_flag = true;
@@ -171,7 +171,7 @@ int second_run(int IC, int DC,
                 strncpy(token, first_quote, last_quote-first_quote);
                 /* get the string between the quotes */
                 token[last_quote-first_quote+1] = NULL_TERMINATOR;
-                /* if the string doesnt start and end with '"' , error - continue to next line */
+                /* if the string doesn't start and end with '"' , error - continue to next line */
                 if (token[0] != STRING_QUOTE || token[strlen(token) - 1] != STRING_QUOTE) {
                     continue;
                 }
