@@ -45,6 +45,11 @@
  * */
 #define resetParam(param) param->data = 0; param->encoding_type = None
 
+/* Macro: isDataInRange and isParamInRange
+ * Description: check if data or param is in range
+ * Takes: num - number to check (int)
+ * Returns: true if number is in range, false otherwise (bool)
+ * */
 #define isDataInRange(num) (num >= MIN_DATA_VALUE && num <= MAX_DATA_VALUE)
 #define isParamInRange(num) (num >= MIN_PARAM_VALUE && num <= MAX_PARAM_VALUE)
 

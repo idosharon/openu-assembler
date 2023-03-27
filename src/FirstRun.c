@@ -69,10 +69,18 @@ int firstRun(FILE* file, char* base_file_name) {
         if(strchr(line, LABEL_SEP)) {
             /* check if label is valid */
             if (isValidLabel(token)) {
-                label_flag = true;
                 /* get the label and remove the ':' */
                 current_label = token;
                 current_label[strlen(current_label)-1] = NULL_TERMINATOR;
+
+                /* check if label is too long */
+                if (strlen(current_label) > LABEL_MAX_LENGTH){
+                    error_flag = true;
+                    line_error(LABEL_TOO_LONG, base_file_name, line_number, line);
+                }
+                else
+                    label_flag = true;
+
                 token = strtok(NULL, SPACE_SEP);
 
                 /* if rest of the line is empty - error*/

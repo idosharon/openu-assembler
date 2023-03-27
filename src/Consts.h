@@ -23,6 +23,7 @@
 
 /* File reading consts */
 #define MAX_LINE_SIZE   80
+#define LABEL_MAX_LENGTH 30
 #define MAX_MEMORY_WORDS 256
 #define MAX_MEMORY_SIZE (MAX_MEMORY_WORDS * WORD_SIZE)
 #define FILE_READ_MODE "r"

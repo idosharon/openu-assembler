@@ -39,6 +39,7 @@ const char* ERRORS[] = {
         "Command or data instruction not found",
         "Memory overflow - file too large",
         "Consecutive labels",
+        "Label name too long",
 };
 
 const char* WARNINGS[] = {

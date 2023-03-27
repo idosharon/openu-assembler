@@ -97,11 +97,20 @@ int second_run(size_t IC, size_t DC,
         /* check if there is a label */
         if (strchr(token, LABEL_SEP)) {
             if (isValidLabel(token)) {
+                /* get label name */
                 current_label_name = strdup(token);
+                /* remove ':' from label name */
                 current_label_name[strlen(current_label_name) - 1] = NULL_TERMINATOR;
-                current_label = findLabel(current_label_name, extern_list, label_list, NULL);
-                label_flag = true;
+
+                /* check if label is too long */
+                if (strlen(current_label_name) <= LABEL_MAX_LENGTH) {
+                    label_flag = true;
+                    current_label = findLabel(current_label_name, extern_list, label_list, NULL);
+                }
+
+                /* get next token */
                 token = strtok(NULL, SPACE_SEP);
+                /* if token is NULL, continue to next line */
                 if (token == NULL) {
                     continue;
                 }
@@ -116,64 +125,73 @@ int second_run(size_t IC, size_t DC,
                 if (findLabel(current_label_name, entry_list, NULL) != NULL)
                     entry_show_list = addLabelNode(entry_show_list, current_label_name, DC, Data);
             }
+            /* if the label in the start of the line is already defined as external - raise error */
             if (current_label != NULL && current_label->type == Extern) {
                 line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number, line);
                 error_flag = true;
                 continue;
             }
 
-            /* check for .current_data_value symbol */
+            /* check for .data symbol */
             if (isStrEqual(token, DATA_SYMBOL)) {
                 /* encode all current_data_value */
                 while ((token = strtok(NULL, COMMA_SEP)) != NULL) {
-                    if (is_number(token)) {
-                        if(to_number(token, &current_data_value) == ERROR_CODE) {
-                            line_error(DATA_SYNTAX_ERROR, base_file_name, line_number, line);
-                            error_flag = true;
-                            continue;
-                        }
+                    /* check if token is a number */
+                    if (to_number(token, &current_data_value)) {
+                        /* check if number is in range */
                         if (!isDataInRange(current_data_value)) {
-                            line_error(DATA_OUT_OF_RANGE, base_file_name, line_number, line);
                             error_flag = true;
                             continue;
                         }
+                        /* encode the number in memory image */
                         binaryData.data = current_data_value;
-                        memory_image[DC].data = binaryData;
-                        DC++;
+                        memory_image[DC++].data = binaryData;
                     } else {
+                        /* if token is not a number, continue to next number */
+                        error_flag = true;
                         continue;
                     }
                 }
             } else if (isStrEqual(token, STRING_SYMBOL)) {
+                /* get first and last quote */
                 token = strtok(NULL, SPACE_SEP);
                 if (token == NULL)
                     continue;
+                /* find first and last '"' */
                 first_quote = strchr(line, STRING_QUOTE);
                 last_quote = strrchr(line, STRING_QUOTE);
+                /* if there is no two '"' , error - continue to next line */
                 if (last_quote == NULL || first_quote == NULL || last_quote <= first_quote) {
                     continue;
                 }
+                /* if there is more text after string, error - continue to next line */
                 if (strtok(last_quote+1,SPACE_SEP) != NULL)
                     continue;
-
+                /* copy string to token */
                 strncpy(token, first_quote, last_quote-first_quote);
+                /* get the string between the quotes */
                 token[last_quote-first_quote+1] = NULL_TERMINATOR;
+                /* if the string doesnt start and end with '"' , error - continue to next line */
                 if (token[0] != STRING_QUOTE || token[strlen(token) - 1] != STRING_QUOTE) {
                     continue;
                 }
+                /* remove '"' from string */
                 token[strlen(token) - 1] = NULL_TERMINATOR;
                 token++;
+                /* encode all chars in string */
                 while (token[0] != NULL_TERMINATOR) {
                     binaryData.data = (unsigned) token[0];
                     memory_image[DC].data = binaryData;
                     DC++;
                     token++;
                 }
+                /* encode '\0' to memory image */
                 binaryData.data = 0;
                 memory_image[DC].data = binaryData;
                 DC++;
             }
         } else if (IS_EXTERN_SYMBOL(token) || IS_ENTRY_SYMBOL(token)) {
+            /* if the token is .extern or .entry - second run skips */
             continue;
         } else {
             /* get current current_command index */
@@ -183,6 +201,7 @@ int second_run(size_t IC, size_t DC,
                     if (findLabel(current_label_name, entry_list, NULL) != NULL)
                         entry_show_list = addLabelNode(entry_show_list, current_label_name, IC, Code);
                 }
+                /* if the label in the start of the line is already defined as external - raise error */
                 if (current_label != NULL && current_label->type == Extern) {
                     line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number, line);
                     error_flag = true;
@@ -215,6 +234,7 @@ int second_run(size_t IC, size_t DC,
                     command_offset++;
                     token = strtok(NULL, COMMA_SEP);
 
+                    /* if token after command is NULL, continue to next line */
                     if (token) {
                         if ((source_type = get_arg_type(token, current_command.arg1_optional_types)) == None) {
                             continue;
@@ -234,6 +254,7 @@ int second_run(size_t IC, size_t DC,
                             }
                         }
 
+                        /* if arg is external, add to extern show list */
                         if(binaryFirstParam->encoding_type == External) {
                             extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                         }
@@ -251,6 +272,7 @@ int second_run(size_t IC, size_t DC,
                     command_offset++;
                     token = strtok(NULL, (source_type == None ? SPACE_SEP : COMMA_SEP));
 
+                    /* if token after command is NULL, continue to next line */
                     if (token) {
                         if ((dest_type = get_arg_type(token, current_command.arg2_optional_types)) == None) {
                             continue;
@@ -275,6 +297,7 @@ int second_run(size_t IC, size_t DC,
                             }
                         }
 
+                        /* if arg is external, add to extern show list */
                         if(binarySecondParam->encoding_type == External) {
                             extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                         }
@@ -284,6 +307,7 @@ int second_run(size_t IC, size_t DC,
                             command_offset--;
                         }
 
+                        /* encode to code image */
                         code_image[IC + command_offset].param = *binarySecondParam;
 
                         /* if dest type is jump, encode the first and second parameters */
@@ -350,6 +374,7 @@ int second_run(size_t IC, size_t DC,
                                     }
                                 }
 
+                                /* if argument is external - add it to extern show list */
                                 if(binaryJumpSecondParam->encoding_type == External) {
                                     extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                                 }
@@ -371,7 +396,7 @@ int second_run(size_t IC, size_t DC,
                     }
                 }
 
-
+                /* if there is a third arg, continue to next line */
                 if (strtok(NULL, SPACE_SEP) != NULL) {
                     continue;
                 }
@@ -383,6 +408,7 @@ int second_run(size_t IC, size_t DC,
         }
     }
 
+    /* check for undefined entries */
     error_flag = error_flag | checkForUndefinedEntries(entry_list, entry_show_list, base_file_name);
 
     /* if all good  create entry and external files from lists */
@@ -430,8 +456,10 @@ ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg
     label_t* current_label;
     int data;
 
+    /* check argument type */
     switch (current_arg_type) {
         case Immediate:
+            /* skip # and encode number */
             token++;
             (*binArg)->param.encoding_type = Absolute;
             if(to_number(token, &data) == ERROR_CODE)
@@ -443,24 +471,31 @@ ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg
             }
             break;
         case Direct:
+            /* search for label */
             (*binArg)->param.encoding_type = Relocatable;
             if ((current_label = findLabel(token, label_list, extern_list, NULL)) == NULL) {
                 return UNDEFINED_LABEL;
             }
+            /* if label is external, encode it as external */
             if (current_label->type == Extern) {
                 (*binArg)->param.encoding_type = External;
                 (*binArg)->param.data = 0;
             }
             else
+                /* encode label adress */
                 (*binArg)->param.data = current_label->place;
             break;
         case Register:
+            /* encode register */
             (*binArg)->param.encoding_type = Absolute;
+            /* if the argument is register and it is the first arg, encode register in source */
             if (prev_register == -1) {
                 (*binArg)->two_registers.encoding_type = Absolute;
                 (*binArg)->two_registers.src_register = find_register(token);
                 (*binArg)->two_registers.dest_register = 0;
             } else {
+                /* if the first argument is register and the given argument is the second arg (also a register): */
+                /* encode register in destination and first register to source (put two registers in one word)*/
                 (*binArg)->two_registers.encoding_type = Absolute;
                 (*binArg)->two_registers.dest_register = find_register(token);
                 (*binArg)->two_registers.src_register = prev_register;
@@ -495,6 +530,7 @@ void createEntryFile(node_t* entry_show_list, char* base_file_name) {
 
     output_entry_file = fopen(entry_file_name, FILE_WRITE_MODE);
 
+    /* for each entry label, put its address to entry file */
     while(entry_show_list) {
         current_entry = entry_show_list->data;
         fprintf(output_entry_file, "%s\t%lu\n",current_entry->name , current_entry->place);
@@ -527,6 +563,7 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
 
     output_extern_file = fopen(extern_file_name, FILE_WRITE_MODE);
 
+    /* for each extern label show in file, put its address in code to extern file */
     while(extern_show_list) {
         current_extern = extern_show_list->data;
         fprintf(output_extern_file, "%s\t%lu\n",current_extern->name , current_extern->place);
