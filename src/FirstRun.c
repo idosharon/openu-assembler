@@ -61,7 +61,7 @@ int firstRun(FILE* file, char* base_file_name) {
         /* increase line counter */
         line_number++;
         /* split line into tokens */
-        token = strtok(strdup(line), SPACE_SEP);
+        token = strtok((char*) strdup(line), SPACE_SEP);
 
         label_flag = false;
 

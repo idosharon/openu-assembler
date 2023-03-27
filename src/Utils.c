@@ -32,7 +32,7 @@ int find_command(char* str) {
  */
 bool isValidLabel(char* label_name) {
     /* copy label name */
-    char* label_name_copy = strdup(label_name);
+    char* label_name_copy = (char*) strdup(label_name);
     /* check if label name is valid */
     if (!isValidLabelFormat(label_name_copy))
         return false;
@@ -84,7 +84,7 @@ bool isValidLabelFormat(char* label_name) {
 arg_type getJumpParamType(char* params_str, int param_number) {
     arg_type param_type;
 
-    params_str = strdup(params_str);
+    params_str = (char*) strdup(params_str);
 
     if(!params_str) return None;
 

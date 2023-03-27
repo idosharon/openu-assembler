@@ -92,13 +92,13 @@ int second_run(int IC, int DC,
         current_label = NULL;
 
         /* split line into tokens */
-        token = strtok(strdup(line), SPACE_SEP);
+        token = strtok((char*) strdup(line), SPACE_SEP);
 
         /* check if there is a label */
         if (strchr(token, LABEL_SEP)) {
             if (isValidLabel(token)) {
                 /* get label name */
-                current_label_name = strdup(token);
+                current_label_name = (char*) strdup(token);
                 /* remove ':' from label name */
                 current_label_name[strlen(current_label_name) - 1] = NULL_TERMINATOR;
 

@@ -45,7 +45,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
         line_number++;
 
         /* split line into tokens */
-        token = strtok(strdup(line), SPACE_SEP);
+        token = strtok((char*) strdup(line), SPACE_SEP);
 
         /* skip comment & empty line */
         if(token == NULL || token[0] == COMMENT_CHAR) continue;

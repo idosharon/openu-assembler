@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
         /* run assembler on each file */
         for (; file_index < argc; file_index++) {
             /* run assembler on current file, and increase error counter if error is returned (-1) */
-            error_counter += runAssembler(strdup(argv[file_index]));
+            error_counter += runAssembler((char*) strdup(argv[file_index]));
             printf("\n");
         }
     }
