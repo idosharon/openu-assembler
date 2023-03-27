@@ -26,10 +26,8 @@ typedef enum {
     DATA_SYNTAX_ERROR,
     EXTERN_MISSING_ARGUMENT,
     ENTRY_MISSING_ARGUMENT,
-    COMMAND_NOT_FOUND,
     INVALID_DEST_ARG,
     INVALID_SOURCE_ARG,
-    PRESERVED_KEYWORD,
     TOO_MANY_ARGS,
     TOO_FEW_ARGS,
     EXTERN_TOO_MANY_ARGUMENTS,
@@ -54,7 +52,6 @@ typedef enum {
 extern const char* ERRORS[];
 
 /* Macros for printing error messages */
-#define error(error_index) (printf("[error]: %s\n", ERRORS[error_index]))
 #define line_error(error_index, base_file_name, line_number, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
                                                                     printf("[error]: %s (see file: %s%s, line: %d): %s\n", ERRORS[error_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
 #define file_error(error_index, base_file_name) (printf("[error]: %s (see file: %s%s)\n", ERRORS[error_index], base_file_name, ASM_FILE_EXTENSION))
