@@ -31,15 +31,15 @@ int second_run(size_t IC, size_t DC,
                FILE* file,
                char* base_file_name) {
     /* create memory images */
-    word *code_image = (word *) malloc((IC - START_ADD) * sizeof(word));
-    word *memory_image = (word *) malloc((DC - IC) * sizeof(word));
+    word *code_image = (word *) calloc(sizeof(word), IC - START_ADD);
+    word *memory_image = (word *) calloc(sizeof(word), DC - IC);
 
     /* extern and entry show list */
     node_t *extern_show_list = NULL;
     node_t *entry_show_list = NULL;
 
     /* line related variables */
-    char *line = (char *) malloc(MAX_LINE_SIZE * sizeof(char));
+    char *line = (char *) calloc(sizeof(char), MAX_LINE_SIZE);
     size_t line_number = 0;
 
     /* token pointer */
@@ -56,8 +56,9 @@ int second_run(size_t IC, size_t DC,
     /* command related variables */
     int command_offset;
     command_t current_command;
-    size_t command_index = 0;
-    arg_type source_type = None, dest_type = None;
+    size_t command_index;
+    arg_type source_type, dest_type;
+    arg_type jmpFirstParmType, jmpSecondParmType;
 
     /* .data/.string related variables */
     int current_data_value;
@@ -69,6 +70,9 @@ int second_run(size_t IC, size_t DC,
     binary_data binaryData = {0};
     binary_param* binaryFirstParam = (binary_param*) calloc(sizeof(binary_param), 1);
     binary_param* binarySecondParam = (binary_param*) calloc(sizeof(binary_param), 1);
+
+    binary_param* binaryJumpFirstParam = (binary_param*) calloc(sizeof(binary_param), 1);
+    binary_param* binaryJumpSecondParam = (binary_param*) calloc(sizeof(binary_param), 1);
 
     /* reset parameters */
     resetParam(binaryFirstParam);
@@ -111,7 +115,6 @@ int second_run(size_t IC, size_t DC,
             if (label_flag) {
                 if (findLabel(current_label_name, entry_list, NULL) != NULL)
                     entry_show_list = addLabelNode(entry_show_list, current_label_name, DC, Data);
-                label_flag = false;
             }
             if (current_label != NULL && current_label->type == Extern) {
                 line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number, line);
@@ -124,9 +127,15 @@ int second_run(size_t IC, size_t DC,
                 /* encode all current_data_value */
                 while ((token = strtok(NULL, COMMA_SEP)) != NULL) {
                     if (is_number(token)) {
-                        current_data_value = atoi(token);
-                        if (current_data_value > MAX_DATA_VALUE || current_data_value < MIN_DATA_VALUE) {
-                            line_warning(DATA_OUT_OF_RANGE, base_file_name, line_number, line);
+                        if(to_number(token, &current_data_value) == ERROR_CODE) {
+                            line_error(DATA_SYNTAX_ERROR, base_file_name, line_number, line);
+                            error_flag = true;
+                            continue;
+                        }
+                        if (!isDataInRange(current_data_value)) {
+                            line_error(DATA_OUT_OF_RANGE, base_file_name, line_number, line);
+                            error_flag = true;
+                            continue;
                         }
                         binaryData.data = current_data_value;
                         memory_image[DC].data = binaryData;
@@ -155,7 +164,7 @@ int second_run(size_t IC, size_t DC,
                 token[strlen(token) - 1] = NULL_TERMINATOR;
                 token++;
                 while (token[0] != NULL_TERMINATOR) {
-                    binaryData.data = token[0];
+                    binaryData.data = (unsigned) token[0];
                     memory_image[DC].data = binaryData;
                     DC++;
                     token++;
@@ -173,7 +182,6 @@ int second_run(size_t IC, size_t DC,
                 if (label_flag) {
                     if (findLabel(current_label_name, entry_list, NULL) != NULL)
                         entry_show_list = addLabelNode(entry_show_list, current_label_name, IC, Code);
-                    label_flag = false;
                 }
                 if (current_label != NULL && current_label->type == Extern) {
                     line_error(CONFLICT_LOCAL_EXTERNAL_LABELS, base_file_name, line_number, line);
@@ -196,9 +204,10 @@ int second_run(size_t IC, size_t DC,
                 binaryCommand.dest_type = None;
                 binaryCommand.src_type = None;
 
+                /* set opcode */
                 binaryCommand.opcode = command_index;
 
-                source_type = None, dest_type = None;
+                source_type = None;
 
                 /* if expecting first arg */
                 if (current_command.arg1_optional_types) {
@@ -230,8 +239,6 @@ int second_run(size_t IC, size_t DC,
                         }
                         /* encode word */
                         code_image[IC + command_offset].param = *binaryFirstParam;
-
-
                     } else {
                         /* if expecting 1 arg and not found raise error */
                         continue;
@@ -279,16 +286,18 @@ int second_run(size_t IC, size_t DC,
 
                         code_image[IC + command_offset].param = *binarySecondParam;
 
+                        /* if dest type is jump, encode the first and second parameters */
                         if (dest_type == Jump) {
-                            binary_param* binaryJumpFirstParam = (binary_param*) calloc(sizeof(binary_param), 1);
-                            binary_param* binaryJumpSecondParam = (binary_param*) calloc(sizeof(binary_param), 1);
+                            /* reset the binary first and second parameters */
+                            memset(binaryJumpFirstParam, 0, sizeof(binary_param));
+                            memset(binaryJumpSecondParam, 0, sizeof(binary_param));
 
-                            arg_type jmpFirstParmType = None, jmpSecondParmType = None;
-
+                            /* get first parameter */
                             command_offset++;
                             token = strtok(NULL, COMMA_SEP);
 
                             if (token) {
+                                /* get first param type */
                                 if ((jmpFirstParmType = get_arg_type(token, Immediate | Direct | Register)) == None) {
                                     continue;
                                 }
@@ -297,16 +306,16 @@ int second_run(size_t IC, size_t DC,
 
                                 /* get encoded word of argument */
                                 if ((error_code = encodeArgumentToWord(token, jmpFirstParmType, (word **) &binaryJumpFirstParam, -1, label_list, extern_list))) {
-                                    if (error_code == DATA_OUT_OF_RANGE) {
+                                    if (error_code == PARAM_VALUE_OUT_OF_RANGE) {
                                         line_warning(error_code, base_file_name, line_number, line);
                                     }
                                     else {
                                         error_flag = true;
                                         line_error(error_code, base_file_name, line_number, line);
-                                        continue;
                                     }
                                 }
 
+                                /* check for external */
                                 if(binaryJumpFirstParam->encoding_type == External) {
                                     extern_show_list = addLabelNode(extern_show_list, token, IC + command_offset, Code);
                                 }
@@ -318,10 +327,12 @@ int second_run(size_t IC, size_t DC,
                                 continue;
                             }
 
+                            /* get second parameter */
                             command_offset++;
                             token = strtok(NULL, JMP_CLOSE_BRACKET);
 
                             if (token) {
+                                /* get second param type */
                                 if ((jmpSecondParmType = get_arg_type(token, Immediate | Direct | Register)) == None) {
                                     continue;
                                 }
@@ -331,7 +342,7 @@ int second_run(size_t IC, size_t DC,
                                 /* get encoded word of argument */
                                 if ((error_code = encodeArgumentToWord(token, jmpSecondParmType, (word **) &binaryJumpSecondParam,
                                                                        (jmpFirstParmType == Register ? ((binary_two_registers*) binaryJumpFirstParam)->src_register : 0), label_list, extern_list))) {
-                                    if (error_code == DATA_OUT_OF_RANGE) {
+                                    if (error_code == PARAM_VALUE_OUT_OF_RANGE) {
                                         line_warning(error_code, base_file_name, line_number, line);
                                     }
                                     else {
@@ -369,11 +380,7 @@ int second_run(size_t IC, size_t DC,
                 /* encode current_command into code image */
                 code_image[IC].command = binaryCommand;
                 IC += command_offset + 1;
-
-
-               /* printf("\t%lu current_command: %s length: %d\n", line_number, current_command.name, command_offset + 1); */
-            } else
-                continue;
+            }
         }
     }
 
@@ -428,9 +435,11 @@ ERROR encodeArgumentToWord(char* token, arg_type current_arg_type, word** binArg
         case Immediate:
             token++;
             (*binArg)->param.encoding_type = Absolute;
-            data = atoi(token);
+            if(to_number(token, &data) == ERROR_CODE)
+                return DATA_SYNTAX_ERROR;
+
             (*binArg)->param.data = data;
-            if (data > MAX_PARAM_VALUE || data < MIN_PARAM_VALUE) {
+            if (!(isParamInRange(data))) {
                 return PARAM_VALUE_OUT_OF_RANGE;
             }
             break;
@@ -542,8 +551,8 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
 void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, char* base_file_name) {
     char* obj_file_name;
     FILE* output_obj_file;
-    int i = 0;
     size_t current_word;
+    int i = 0;
 
     if(!base_file_name) return;
 
@@ -553,13 +562,7 @@ void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, c
 
     output_obj_file = fopen(obj_file_name, FILE_WRITE_MODE);
 
-    if(DEBUG) {
-        fprintf(output_obj_file, "object file for: %s%s\n", base_file_name, ASM_FILE_EXTENSION);
-    }
     fprintf(output_obj_file, "\t%lu\t%lu\n", IC, DC);
-
-    if(DEBUG)
-        fprintf(output_obj_file, "code image: \n");
 
     /* write code image */
     for (; i < IC; ++i) {
@@ -569,9 +572,6 @@ void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, c
         writeObjToFile(current_word, WORD_SIZE, output_obj_file);
         fputc('\n', output_obj_file);
     }
-
-    if(DEBUG)
-        fprintf(output_obj_file, "memory image: \n");
 
     /* write memory image */
     for (i = 0; i < DC; ++i) {
@@ -595,9 +595,9 @@ void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, c
  * Example: checkForUndefinedEntries(entry_list, entry_show_list, "test") will return true if there are undefined entries
  */
 bool checkForUndefinedEntries(node_t* entry_list, node_t* entry_show_list, char* base_file_name) {
-
     bool error_flag = false;
 
+    /* iterate over all entries and check if it's not defined in entries show list */
     while(entry_list != NULL) {
         if (!findLabelInList(((label_t*) entry_list->data)->name, entry_show_list)) {
             line_error(UNDEFINED_LABEL, base_file_name, ((label_t*) entry_list->data)->place, ((label_t*) entry_list->data)->name);

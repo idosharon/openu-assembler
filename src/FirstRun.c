@@ -19,17 +19,18 @@
  */
 int firstRun(FILE* file, char* base_file_name) {
     /* line - current line from file */
-    char* line = (char*) malloc(MAX_LINE_SIZE * sizeof (char));
+    char* line = (char*) calloc(sizeof (char), MAX_LINE_SIZE);
     /* line number (size_t because line number is positive and could be big */
     size_t line_number = 0;
+    int current_number;
     /* command index of the current command found in line (if found) */
-    size_t command_index = 0;
+    size_t command_index;
     /* command length of the current command found in line (if found) */
-    int command_length = 1;
+    int command_length;
     /* command struct of the current command found in line (if found) */
     command_t command;
     /* argument type (enum) of the source and destination arguments  */
-    arg_type source_type = None, dest_type = None;
+    arg_type source_type, dest_type;
     /* token - the current token in line */
     char* token;
 
@@ -42,7 +43,7 @@ int firstRun(FILE* file, char* base_file_name) {
     /* current label if found label in line */
     char* current_label = NULL;
     /* label flag if found label in start of line */
-    bool label_flag = false;
+    bool label_flag;
 
     /* error flag if found an error */
     bool error_flag = false;
@@ -105,9 +106,9 @@ int firstRun(FILE* file, char* base_file_name) {
             if (isStrEqual(token, DATA_SYMBOL)) {
                 /* calculate data length */
                 while((token = strtok(NULL, COMMA_SEP)) != NULL) {
-                    if (is_number(token)) {
+                    if (to_number(token, &current_number) != ERROR_CODE) {
                         /* check if data is in range */
-                        if(!isDataInRange(atoi(token))) {
+                        if(!isDataInRange(current_number)) {
                             line_error(DATA_OUT_OF_RANGE, base_file_name, line_number, line);
                             error_flag = true;
                             continue;
@@ -115,7 +116,7 @@ int firstRun(FILE* file, char* base_file_name) {
                         /* increase DC (each number takes one word */
                         DC++;
                     } else {
-                        /* data is not a number -error */
+                        /* data is not a number - error */
                         line_error(DATA_SYNTAX_ERROR, base_file_name,line_number, line);
                         error_flag = true;
                         continue;
@@ -334,12 +335,13 @@ int firstRun(FILE* file, char* base_file_name) {
     updateDC(IC, label_list, NULL);
     DC += IC;
 
-    /* printf("IC: %d DC: %d\n", IC, DC); */
-
     if(DC-START_ADD > MAX_MEMORY_SIZE) {
         file_error(MEMORY_OVERFLOW, base_file_name);
         error_flag = true;
     }
+
+    /* free memory */
+    free(line);
 
     /* start second run */
     rewind(file);

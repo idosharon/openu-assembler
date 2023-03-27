@@ -409,3 +409,37 @@ bool is_number(char* str) {
     }
     return true;
 }
+
+/* Function: to_number
+ * Description: convert a string to a number with 2's complement support and error checking
+ * Input: str - string (char*) to convert
+ *        num - pointer to the number to write to
+ * Output: NO_ERROR if no error occurred, ERROR_CODE otherwise
+ */
+ERROR to_number(char* str, int* num) {
+    int i = 0;
+    bool number_started = false;
+    int sign = 1;
+
+    if(!str) return 0;
+    *num = 0;
+
+    for(; i < strlen(str); i++) {
+        if(isdigit(str[i])) {
+            number_started = true;
+            *num = (*num) * 10 + (str[i] - '0');
+        }
+        else if(!number_started && str[i] == '-') {
+            sign *= -1;
+        }
+        else {
+            return ERROR_CODE;
+        }
+    }
+
+    if(sign == -1) {
+        *num = ~(*num) + 1;
+    }
+
+    return NO_ERROR;
+}

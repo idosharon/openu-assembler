@@ -25,7 +25,7 @@
 #define MAX_LINE_SIZE   80
 #define MAX_MEMORY_WORDS 256
 #define MAX_MEMORY_SIZE (MAX_MEMORY_WORDS * WORD_SIZE)
-#define FILE_READ_MODE  "r"
+#define FILE_READ_MODE "r"
 #define FILE_WRITE_MODE "w"
 
 /* Address consts */
@@ -68,9 +68,6 @@
 #define STRING_SYMBOL   ".string"
 #define ENTRY_SYMBOL    ".entry"
 #define EXTERN_SYMBOL   ".extern"
-
-/* Debug */
-#define DEBUG true
 
 /* All commands */
 #define NUM_OF_COMMANDS 16

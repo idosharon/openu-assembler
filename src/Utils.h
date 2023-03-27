@@ -31,7 +31,7 @@
 /* Macro: encodeArgumentType
  * Description: encode argument type to bit representation using log2 function
  * Takes: arg_type - argument type (arg_type)
- * Returns: bit representation of argument type (int)
+ * Returns: a bit representation of argument type (int)
  * Example: encodeArgumentType(Immediate) = 0 (log2(Immediate = 1) = 0)
  *          encodeArgumentType(Direct) = 1 (log2(Direct = 2) = 1)
  * */
@@ -46,7 +46,7 @@
 #define resetParam(param) param->data = 0; param->encoding_type = None
 
 #define isDataInRange(num) (num >= MIN_DATA_VALUE && num <= MAX_DATA_VALUE)
-
+#define isParamInRange(num) (num >= MIN_PARAM_VALUE && num <= MAX_PARAM_VALUE)
 
 /* Functions */
 
@@ -90,5 +90,6 @@ void free_list(node_t*);
 
 /* general utils functions */
 bool is_number(char*);
+ERROR to_number(char*, int*);
 
 #endif
