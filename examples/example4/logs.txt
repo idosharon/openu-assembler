@@ -1,0 +1,9 @@
+[info]: Running assembler for: example4.as
+[info]: Created pre assembled file: example4.am
+[error]: Multiple extern request for label (see file: example4.am, line: 3):     .extern W
+[error]: Label syntax error (see file: example4.am, line: 4): mov: cmp #-1,r0
+[error]: Missing code after label (see file: example4.am, line: 5): M2:
+[error]: Too few arguments (see file: example4.am, line: 6): clr
+[error]: Command or data instruction not found (see file: example4.am, line: 7): cmp2 W,LABEL3
+[error]: Undefined label (see file: example4.am, line: 1): LABEL3
+

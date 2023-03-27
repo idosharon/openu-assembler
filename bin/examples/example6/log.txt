@@ -1,4 +1,0 @@
-[info]: Running assembler for: example6/example6.as
-[info]: Created pre assembled file: example6/example6.am
-[error]: Invalid destination argument (see file: example6/example6.am, line: 9): bne L3,L4
-[error]: Invalid destination argument (see file: example6/example6.am, line: 10): jmp L3,L4

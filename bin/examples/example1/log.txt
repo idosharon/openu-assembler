@@ -1,6 +1,0 @@
-[info]: Running assembler for: example1/example1.as
-[info]: Created pre assembled file: example1/example1.am
-[info]: No errors found, creating output files for: example1/example1
-[info]: Created object file: example1/example1.o
-[info]: Created entry file: example1/example1.ent
-[info]: Created extern file: example1/example1.ext

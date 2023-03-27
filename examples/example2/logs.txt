@@ -1,0 +1,5 @@
+[info]: Running assembler for: example2.as
+[info]: Created pre assembled file: example2.am
+[info]: No errors found, creating output files for: example2
+[info]: Created object file: example2.o
+
