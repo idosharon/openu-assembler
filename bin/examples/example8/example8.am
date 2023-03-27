@@ -1,0 +1,10 @@
+DATA1: .data 1,2,-2
+    red r1
+    red r2
+    jmp K(L1,L2)
+    clr L1
+    inc K
+    jmp K(L1,L2)
+    clr L1
+    inc K
+    stop

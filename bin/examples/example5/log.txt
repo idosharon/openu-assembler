@@ -1,0 +1,5 @@
+[info]: Running assembler for: example5/example5.as
+[info]: Created pre assembled file: example5/example5.am
+[error]: Invalid destination argument (see file: example5/example5.am, line: 5):     mov K,#2
+[error]: Conflict local and external label (see file: example5/example5.am, line: 2): C: inc K
+[error]: Undefined label (see file: example5/example5.am, line: 6): LABEL
