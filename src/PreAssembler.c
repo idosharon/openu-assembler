@@ -171,7 +171,7 @@ node_t* addMacroNode(node_t* head, char* name) {
 
     /* set macro name and allocate its data */
     new_macro->name = name;
-    new_macro->data = (char*) calloc(1,sizeof (char));
+    new_macro->data = (char*) calloc(1, sizeof (char));
     new_macro->lines_count = 0;
 
     /* create new macro node and append it to the start of list */

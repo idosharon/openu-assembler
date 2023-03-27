@@ -60,5 +60,9 @@ int runAssembler(char* base_file_name) {
         }
     }
 
+    /* free memory */
+    free(current_file_name);
+    fclose(current_file);
+
     return 1;
 }

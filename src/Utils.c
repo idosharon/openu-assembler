@@ -353,6 +353,8 @@ char *getFileName(char* base, char* ext) {
         strcat(file_name, ext);
         return file_name;
     }
+
+    free(file_name);
     return NULL;
 }
 
@@ -422,8 +424,10 @@ ERROR to_number(char* str, int* num) {
     int sign = 1;
 
     if(!str) return 0;
+    /* reset number */
     *num = 0;
 
+    /* add each digit to the number */
     for(; i < strlen(str); i++) {
         if(isdigit(str[i])) {
             number_started = true;
@@ -437,8 +441,9 @@ ERROR to_number(char* str, int* num) {
         }
     }
 
+    /* if number is negative, convert to 2's complement */
     if(sign == -1) {
-        *num = ~(*num) + 1;
+        *num = twosComplement(num);
     }
 
     return NO_ERROR;

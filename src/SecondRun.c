@@ -432,12 +432,19 @@ int second_run(size_t IC, size_t DC,
     }
 
     /* free all allocated memory */
+    free(line);
     free(code_image);
     free(memory_image);
     free_list(label_list);
     free_list(entry_list);
     free_list(extern_list);
     free_list(entry_show_list);
+
+    free(binaryFirstParam);
+    free(binarySecondParam);
+    free(binaryJumpFirstParam);
+    free(binaryJumpSecondParam);
+
 
     return error_flag;
 }

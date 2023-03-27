@@ -45,6 +45,12 @@
  * */
 #define resetParam(param) param->data = 0; param->encoding_type = None
 
+/* Macro: two's complement
+ * Description: calculate two's complement of a word
+ * Takes: data_p - pointer to data (int*)
+ */
+#define twosComplement(data_p) (~(*data_p) + 1)
+
 /* Macro: isDataInRange and isParamInRange
  * Description: check if data or param is in range
  * Takes: num - number to check (int)
