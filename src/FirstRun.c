@@ -270,6 +270,7 @@ int firstRun(FILE* file, char* base_file_name) {
                             continue;
                         }
 
+                        /* if source type is valid increase command length */
                         command_length++;
                     } else {
                         line_error(TOO_FEW_ARGS, base_file_name, line_number, line);
@@ -278,20 +279,24 @@ int firstRun(FILE* file, char* base_file_name) {
                     }
                 }
 
-                /* if expecting 2 args, check if there is a second arg */
+                /* if expecting second arg */
                 if(command.arg2_optional_types) {
+                    /* check if there was first arg, if so split by comma else split by space */
                     token = strtok(NULL, (source_type == None ? SPACE_SEP : COMMA_SEP));
                     if(token) {
+                        /* get dest type */
                         if ((dest_type = get_arg_type(token, command.arg2_optional_types)) == None) {
                             line_error(INVALID_DEST_ARG, base_file_name, line_number, line);
                             error_flag = true;
                             continue;
                         }
 
+                        /* if dest type is valid increase command length */
                         if(dest_type == Jump) {
                             /* get jump params and check the length of overall command */
                             command_length += getJumpParamsLength(token);
                         } else {
+                            /* if not jump, increase command length by 1 */
                             command_length++;
                         }
                     } else {
@@ -302,6 +307,7 @@ int firstRun(FILE* file, char* base_file_name) {
 
                 }
 
+                /* report error if too many args found */
                 if(strtok(NULL, SPACE_SEP) != NULL) {
                     line_error(TOO_MANY_ARGS, base_file_name, line_number, line);
                     error_flag = true;
@@ -312,12 +318,15 @@ int firstRun(FILE* file, char* base_file_name) {
                 if(source_type == Register && dest_type == Register)
                     command_length--;
 
+                /* update IC */
                 IC += command_length;
-                /* printf("\t%lu command: %s length: %d\n", line_number, command.name, command_length); */
             } else {
+                /* no command or data instruction found */
                 if(isValidLabel(token)) {
+                    /* check for consecutive labels */
                     line_error(CONSECUTIVE_LABELS, base_file_name, line_number, line);
                 } else {
+                    /* invalid command or data instruction */
                     line_error(COMMAND_OR_DATA_INSTRUCTION_NOT_FOUND, base_file_name, line_number, line);
                 }
                 error_flag = true;
@@ -328,9 +337,11 @@ int firstRun(FILE* file, char* base_file_name) {
 
     /* update DC */
     updateDC(IC, label_list, NULL);
+    /* update DC */
     DC += IC;
 
-    if(DC-START_ADD > MAX_MEMORY_SIZE) {
+    /* check if memory overflow */
+    if((DC - START_ADD) > MAX_MEMORY_SIZE) {
         file_error(MEMORY_OVERFLOW, base_file_name);
         error_flag = true;
     }
@@ -340,5 +351,6 @@ int firstRun(FILE* file, char* base_file_name) {
 
     /* start second run */
     rewind(file);
+    /* continue to second run */
     return second_run(IC, DC, label_list, extern_list, entry_list, error_flag, file ,base_file_name);
 }
