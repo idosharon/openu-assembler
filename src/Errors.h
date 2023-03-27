@@ -56,7 +56,7 @@ extern const char* ERRORS[];
 /* Macros for printing error messages */
 #define error(error_index) (printf("[error]: %s\n", ERRORS[error_index]))
 #define line_error(error_index, base_file_name, line_number, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
-                                                                    printf("[error]: %s (see file: %s%s, line: %llu): %s\n", ERRORS[error_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
+                                                                    printf("[error]: %s (see file: %s%s, line: %d): %s\n", ERRORS[error_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
 #define file_error(error_index, base_file_name) (printf("[error]: %s (see file: %s%s)\n", ERRORS[error_index], base_file_name, ASM_FILE_EXTENSION))
 
 /* warning messages */
@@ -73,7 +73,7 @@ extern const char* WARNINGS[];
 /* Macros for printing warning messages */
 #define warn(warning) (printf("[warning]: %s\n", WARNINGS[warning]))
 #define line_warning(warning_index, base_file_name, line_number, line) if(strchr(line, LINE_TERMINATOR) != NULL) { *strchr(line, LINE_TERMINATOR) = NULL_TERMINATOR; } \
-                                                                       printf("[warning]: %s (file: %s%s, line: %llu): %s\n", WARNINGS[warning_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
+                                                                       printf("[warning]: %s (file: %s%s, line: %d): %s\n", WARNINGS[warning_index], base_file_name, PRE_ASSEMBLER_FILE_EXTENSION, line_number, line)
 
 
 #endif

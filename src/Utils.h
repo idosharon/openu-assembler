@@ -71,11 +71,11 @@ bool isValidLabelFormat(char*);
 /* label list functions */
 label_t* findLabelInList(char *name, node_t *head);
 label_t* findLabel(char*, node_t*, ...);
-node_t* addLabelNode(node_t*, char*, size_t, label_type);
+node_t* addLabelNode(node_t*, char*, int, label_type);
 
 /* DC update functions */
-void updateDCInList(size_t, node_t*);
-void updateDC(size_t, node_t*, ...);
+void updateDCInList(int, node_t*);
+void updateDC(int, node_t*, ...);
 
 /* IC update functions */
 void updateICInList(int, node_t*);
@@ -94,7 +94,7 @@ int find_register(char*);
 /* file functions */
 char* getFileName(char*, char*);
 FILE* openFile(char*, char*);
-void writeObjToFile(size_t, size_t, FILE*);
+void writeObjToFile(int, int, FILE*);
 
 /* general list functions */
 void free_list(node_t*);

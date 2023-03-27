@@ -25,7 +25,7 @@ typedef struct {
     /* macro data - pointer to string of the macro lines concatenated */
     char* data;
     /* lines count - number of lines in macro */
-    size_t lines_count;
+    int lines_count;
 } macro_t;
 
 /* function headers - explanation for each function can be found in the source file */

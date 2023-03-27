@@ -62,7 +62,7 @@ typedef struct {
  * */
 typedef struct {
     char* name;
-    size_t place;
+    int place;
     label_type type;
 } label_t;
 

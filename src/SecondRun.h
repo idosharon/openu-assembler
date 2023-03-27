@@ -14,7 +14,7 @@
 #include "Types.h"
 
 /* functions */
-int second_run(size_t, size_t, node_t*, node_t*, node_t*, bool, FILE*, char*);
+int second_run(int, int, node_t*, node_t*, node_t*, bool, FILE*, char*);
 
 /* encode functions */
 ERROR encodeArgumentToWord(char*, arg_type, word**, int, node_t*, node_t*);
@@ -22,7 +22,7 @@ ERROR encodeArgumentToWord(char*, arg_type, word**, int, node_t*, node_t*);
 /* entry and extern related functions */
 void createEntryFile(node_t*, char*);
 void createExternFile(node_t*, char*);
-void createObjFile(size_t, word*, size_t, word*, char*);
+void createObjFile(int, word*, int, word*, char*);
 bool checkForUndefinedEntries(node_t*, node_t*, char*);
 
 

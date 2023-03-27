@@ -235,7 +235,7 @@ label_t* findLabel(char* name, node_t* label_list, ...) {
  *        labelType - label type
  * Output: pointer to the new head of the label list
  */
-node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelType) {
+node_t* addLabelNode(node_t* head, char* name, int place, label_type labelType) {
     /* set current label to the new label */
     label_t* new_label = (label_t*) (malloc(sizeof (label_t)));
     node_t* new_label_node = (node_t*) (malloc(sizeof (node_t)));
@@ -257,7 +257,7 @@ node_t* addLabelNode(node_t* head, char* name, size_t place, label_type labelTyp
  *        head - pointer to the head of the label list
  * Output: None
  */
-void updateDCInList(size_t IC, node_t* head) {
+void updateDCInList(int IC, node_t* head) {
     label_t* label;
     while(head != NULL) {
         label = (label_t*) head->data;
@@ -274,7 +274,7 @@ void updateDCInList(size_t IC, node_t* head) {
  *        ... - NULL terminated list of label lists
  * Output: None
  */
-void updateDC(size_t IC, node_t* label_list, ...) {
+void updateDC(int IC, node_t* label_list, ...) {
     va_list lists;
     va_start(lists, label_list);
     while(label_list != NULL) {
@@ -386,7 +386,7 @@ FILE* openFile(char* file_name, char* mode) {
  *        fp - file pointer to write to
  * Output: none
  */
-void writeObjToFile(size_t current_word, size_t num_of_bits, FILE* fp) {
+void writeObjToFile(int current_word, int num_of_bits, FILE* fp) {
     int j;
     /* write each bit in the word to the file */
     for (j = 0; j < num_of_bits; ++j) {

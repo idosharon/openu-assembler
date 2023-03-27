@@ -23,7 +23,7 @@
  *        base_file_name - base file name (excluding extension, used for output file name with new .o, .ent, .ext extensions)
  * Output: 0 if no errors found, 1 if errors found
  */
-int second_run(size_t IC, size_t DC,
+int second_run(int IC, int DC,
                node_t* label_list,
                node_t* extern_list,
                node_t* entry_list,
@@ -40,7 +40,7 @@ int second_run(size_t IC, size_t DC,
 
     /* line related variables */
     char *line = (char *) calloc(sizeof(char), MAX_LINE_SIZE);
-    size_t line_number = 0;
+    int line_number = 0;
 
     /* token pointer */
     char *token;
@@ -56,7 +56,7 @@ int second_run(size_t IC, size_t DC,
     /* command related variables */
     int command_offset;
     command_t current_command;
-    size_t command_index;
+    int command_index;
     arg_type source_type, dest_type;
     arg_type jmpFirstParmType, jmpSecondParmType;
 
@@ -540,7 +540,7 @@ void createEntryFile(node_t* entry_show_list, char* base_file_name) {
     /* for each entry label, put its address to entry file */
     while(entry_show_list) {
         current_entry = entry_show_list->data;
-        fprintf(output_entry_file, "%s\t%lu\n",current_entry->name , current_entry->place);
+        fprintf(output_entry_file, "%s\t%d\n",current_entry->name , current_entry->place);
         entry_show_list = (node_t *) entry_show_list->next;
     }
 
@@ -573,7 +573,7 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
     /* for each extern label show in file, put its address in code to extern file */
     while(extern_show_list) {
         current_extern = extern_show_list->data;
-        fprintf(output_extern_file, "%s\t%lu\n",current_extern->name , current_extern->place);
+        fprintf(output_extern_file, "%s\t%d\n",current_extern->name , current_extern->place);
         extern_show_list = (node_t *) extern_show_list->next;
     }
 
@@ -591,10 +591,10 @@ void createExternFile(node_t* extern_show_list, char* base_file_name) {
  * Output: none
  * Example: createObjFile(100, code_image, 200, data_image, "test") will create a file named "test.ob" with the object file
  */
-void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, char* base_file_name) {
+void createObjFile(int IC, word* code_image, int DC, word* memory_image, char* base_file_name) {
     char* obj_file_name;
     FILE* output_obj_file;
-    size_t current_word;
+    int current_word;
     int i = 0;
 
     if(!base_file_name) return;
@@ -605,7 +605,7 @@ void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, c
 
     output_obj_file = fopen(obj_file_name, FILE_WRITE_MODE);
 
-    fprintf(output_obj_file, "\t%lu\t%lu\n", IC, DC);
+    fprintf(output_obj_file, "\t%d\t%d\n", IC, DC);
 
     /* write code image */
     for (; i < IC; ++i) {
@@ -619,7 +619,7 @@ void createObjFile(size_t IC, word* code_image, size_t DC, word* memory_image, c
     /* write memory image */
     for (i = 0; i < DC; ++i) {
         current_word = memory_image[i].data.data;
-        fprintf(output_obj_file, "%04lu\t", i + START_ADD + IC);
+        fprintf(output_obj_file, "%04d\t", i + START_ADD + IC);
         /* print data in binary 1 and 0 */
         writeObjToFile(current_word, WORD_SIZE, output_obj_file);
         fputc('\n', output_obj_file);

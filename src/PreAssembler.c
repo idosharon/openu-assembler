@@ -26,7 +26,7 @@ char* preAssemble(FILE* file, char* base_file_name) {
 
     /* line buffer & line number */
     char* line = (char*) calloc(MAX_LINE_SIZE, sizeof (char));
-    size_t line_number = 0;
+    int line_number = 0;
 
     /* token pointer */
     char* token;

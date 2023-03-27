@@ -20,11 +20,11 @@
 int firstRun(FILE* file, char* base_file_name) {
     /* line - current line from file */
     char* line = (char*) calloc(sizeof (char), MAX_LINE_SIZE);
-    /* line number (size_t because line number is positive and could be big */
-    size_t line_number = 0;
+    /* line number */
+    int line_number = 0;
     int current_number;
     /* command index of the current command found in line (if found) */
-    size_t command_index;
+    int command_index;
     /* command length of the current command found in line (if found) */
     int command_length;
     /* command struct of the current command found in line (if found) */
@@ -53,8 +53,8 @@ int firstRun(FILE* file, char* base_file_name) {
     node_t* entry_list = NULL;
 
     /* init IC and DC */
-    size_t IC = START_ADD;
-    size_t DC = 0;
+    int IC = START_ADD;
+    int DC = 0;
 
     /* read new line from file */
     while(fgets(line, MAX_LINE_SIZE, file) != NULL) {
