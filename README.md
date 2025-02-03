@@ -1,7 +1,7 @@
 ## OpenU Assembler project 
 
 ### Project information
-**Created by:** Ido Sharon (215774142), Amitai Ben Shalom (327743399)
+**Created by:** Ido Sharon, Amitai Ben Shalom
 <br>
 **Semester:** 2023a
 <br>
